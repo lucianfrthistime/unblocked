@@ -1,0 +1,381 @@
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xhtml="http://www.w3.org/1999/xhtml"
+     width="100%" height="100%"
+     viewBox="0 0 1000 800">
+
+  <foreignObject x="0" y="0" width="1000" height="800">
+    <div xmlns="http://www.w3.org/1999/xhtml"
+         style="width:100%;height:100%;overflow:auto;
+                box-sizing:border-box;padding:40px;
+                background:#fff;color:#222;
+                font-family:Arial,sans-serif;">
+
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #222;
+    background: #fff;
+  }
+
+  nav {
+    display: flex;
+    gap: 8px;
+    margin: 28px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  nav button {
+    padding: 10px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #555;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  nav button:hover {
+    background: #f8fafc;
+  }
+
+  #vouches {
+    max-width: 680px;
+  }
+
+  #vouches h2 {
+    font-size: 24px;
+    margin: 0 0 8px;
+  }
+
+  #liveStatus {
+    margin: 0 0 22px;
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  #vouchForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  #vouchName,
+  #vouchMessage {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #222;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  #vouchName:focus,
+  #vouchMessage:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  }
+
+  #vouchMessage {
+    min-height: 110px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  #submitVouch {
+    align-self: flex-start;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  #submitVouch:hover {
+    background: #1d4ed8;
+  }
+
+  #submitVouch:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+  }
+
+  #vouchList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .vouch-card {
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fff;
+    overflow-wrap: anywhere;
+  }
+
+  .vouch-card strong {
+    color: #111827;
+    font-size: 14px;
+  }
+
+  .vouch-card small {
+    display: block;
+    margin-top: 5px;
+    color: #94a3b8;
+    font-size: 12px;
+  }
+
+  .vouch-card p {
+    margin: 12px 0 0;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+  }
+
+  @media (max-width: 600px) {
+    #vouches {
+      width: 100%;
+    }
+
+    #vouchForm,
+    #vouchName,
+    #vouchMessage {
+      width: 100%;
+    }
+  }
+</style>
+
+
+      <header>
+        <h1 style="color:#2563eb;">we are in downtime :(</h1>
+
+        <p>
+          leaking is bad, lets not make this site main-stream :)
+          i have seen people i don't even know using this site,
+          im putting it down for a little bit as teachers are
+          starting to figure it out.
+        </p>
+
+        <p>
+          if you want to know more about me click
+          <a href="https://gethyper.lol">here</a>
+        </p>
+
+        <h6>
+          this site will never be blocked, if you want to learn more,
+          go to jsdelivr.net and just read about it
+        </h6>
+      </header>
+
+      <hr />
+
+      <nav>
+        <button id="homeTab" type="button">Home</button>
+        <button id="vouchTab" type="button">
+          Vouches (<span id="vouchCount">0</span>)
+        </button>
+      </nav>
+
+      <section id="home">
+        <h2>Currently down</h2>
+        <p>Check back later.</p>
+      </section>
+
+      <section id="vouches" style="display:none;">
+        <h2>Vouches</h2>
+        <p id="liveStatus">Connecting...</p>
+
+        <form id="vouchForm">
+          <input id="vouchName" type="text" maxlength="40"
+                 placeholder="Your name" required="required" />
+          <br />
+
+          <textarea id="vouchMessage" maxlength="500"
+                    placeholder="Write your vouch..."
+                    required="required"></textarea>
+          <br />
+
+          <button id="submitVouch" type="submit">
+            Submit vouch
+          </button>
+        </form>
+
+        <div id="vouchList">Loading vouches...</div>
+      </section>
+
+      <footer style="margin-top:40px;border-top:1px solid #eee;">
+        <p style="font-size:13px;color:#777;">
+          © <span id="year"></span> · temporarily offline
+        </p>
+      </footer>
+
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+      <script><![CDATA[
+        document.getElementById("year").textContent =
+          new Date().getFullYear();
+
+        document.getElementById("homeTab").onclick = function () {
+          document.getElementById("home").style.display = "block";
+          document.getElementById("vouches").style.display = "none";
+        };
+
+        document.getElementById("vouchTab").onclick = function () {
+          document.getElementById("home").style.display = "none";
+          document.getElementById("vouches").style.display = "block";
+        };
+
+        const SUPABASE_URL = "https://jluzslhbqtjmvdzsdfhq.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_pJY2pUAWLJaD7sQ3Cq9UNA_BgmvNQT5";
+
+        const status = document.getElementById("liveStatus");
+        const list = document.getElementById("vouchList");
+        const form = document.getElementById("vouchForm");
+        const submitButton = document.getElementById("submitVouch");
+
+        function showMessage(text) {
+          list.replaceChildren();
+          const p = document.createElement("p");
+          p.textContent = text;
+          list.appendChild(p);
+        }
+
+        if (
+          !SUPABASE_URL.startsWith("YOUR_") &&
+          !SUPABASE_KEY.startsWith("YOUR_") &&
+          window.supabase
+        ) {
+          const db = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+          );
+
+          async function loadVouches() {
+            const { data, error } = await db
+              .from("vouches")
+              .select("id,name,message,created_at")
+              .order("created_at", { ascending: false })
+              .limit(100);
+
+            if (error) {
+              status.textContent = "Unable to load vouches.";
+              showMessage(error.message);
+              return;
+            }
+
+            list.replaceChildren();
+            document.getElementById("vouchCount").textContent =
+              data.length;
+
+            if (data.length === 0) {
+              showMessage("No vouches yet.");
+              return;
+            }
+
+            data.forEach(function (v) {
+              const card = document.createElement("div");
+              card.className = "vouch-card";
+
+              const name = document.createElement("strong");
+              name.textContent = v.name;
+
+              const date = document.createElement("small");
+              date.textContent =
+                " · " + new Date(v.created_at).toLocaleString();
+
+              const content = document.createElement("p");
+              content.textContent = v.message;
+
+              card.append(name, date, content);
+              list.appendChild(card);
+            });
+          }
+
+          loadVouches();
+
+          db.channel("vouches-live")
+            .on("postgres_changes", {
+              event: "*",
+              schema: "public",
+              table: "vouches",
+              filter: undefined
+            }, function () {
+              loadVouches();
+            })
+            .subscribe(function (state) {
+              if (state === "SUBSCRIBED") {
+                status.textContent = "● Live updates connected";
+              } else if (state === "CHANNEL_ERROR") {
+                status.textContent = "Live connection error.";
+              } else {
+                status.textContent = "Connecting to live updates...";
+              }
+            });
+
+          form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const name = document.getElementById("vouchName")
+              .value.trim();
+            const message = document.getElementById("vouchMessage")
+              .value.trim();
+
+            if (!name || !message) return;
+
+            submitButton.disabled = true;
+            status.textContent = "Submitting vouch...";
+
+            const { error } = await db.from("vouches").insert({
+              name: name,
+              message: message
+            });
+
+            submitButton.disabled = false;
+
+            if (error) {
+              status.textContent = "Submission failed.";
+              console.error(error);
+              return;
+            }
+
+            form.reset();
+            status.textContent = "Vouch submitted!";
+            await loadVouches();
+          });
+        } else {
+          status.textContent =
+            "Configure your Supabase URL and publishable key.";
+          showMessage("Live vouches require Supabase configuration.");
+          submitButton.disabled = true;
+        }
+      ]]></script>
+
+    </div>
+  </foreignObject>
+</svg>
