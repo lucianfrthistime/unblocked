@@ -175,12 +175,7 @@
       <header>
         <h1 style="color:#2563eb;">we are in downtime :(</h1>
 
-        <p>
-          leaking is bad, lets not make this site main-stream :)
-          i have seen people i don't even know using this site,
-          im putting it down for a little bit as teachers are
-          starting to figure it out.
-        </p>
+        <p id="downtimeMessage" style="white-space:pre-wrap;">Loading news...</p>
 
         <p>
           if you want to know more about me click
@@ -238,6 +233,27 @@
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
       <script><![CDATA[
+        const downtimeMessage =
+          document.getElementById("downtimeMessage");
+
+        fetch("https://fastly.jsdelivr.net/gh/lucianfrthistime/unblocked@main/news.txt")
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error("HTTP " + response.status);
+            }
+            return response.text();
+          })
+          .then(function (text) {
+            if (!text.trim()) {
+              throw new Error("The news file is empty.");
+            }
+            downtimeMessage.textContent = text;
+          })
+          .catch(function (error) {
+            console.error("Unable to load downtime update:", error);
+            downtimeMessage.textContent = "Unable to load the latest update.";
+          });
+
         document.getElementById("year").textContent =
           new Date().getFullYear();
 
@@ -247,7 +263,7 @@
         };
 
         document.getElementById("vouchTab").onclick = function () {
-          document.getElementById("home").style.display = "none";
+          documenentById("home").style.display = "none";
           document.getElementById("vouches").style.display = "block";
         };
 
@@ -332,7 +348,7 @@
               if (state === "SUBSCRIBED") {
                 status.textContent = "● Live updates connected";
               } else if (state === "CHANNEL_ERROR") {
-                status.textContent = "Live connection error.";
+                status.textContt.getElement = "Live connection error.";
               } else {
                 status.textContent = "Connecting to live updates...";
               }
