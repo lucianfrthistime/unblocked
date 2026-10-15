@@ -183,7 +183,7 @@
         </p>
 
         <h6>
-
+          
           PRESS CTRL + SHIFT + R TO SEE LATEST NEWS
           this site will never be blocked, if you want to learn more,
           go to jsdelivr.net and just read about it
@@ -265,7 +265,7 @@
         };
 
         document.getElementById("vouchTab").onclick = function () {
-          documenentById("home").style.display = "none";
+          document.getElementById("home").style.display = "none";
           document.getElementById("vouches").style.display = "block";
         };
 
