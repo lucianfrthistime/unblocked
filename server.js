@@ -26,4 +26,6 @@ http.createServer((req, res) => {
     });
     res.end(text);
   });
-}).listen(process.env.PORT || 3000, "0.0.0.0");
+}).listen(process.env.PORT || 3000, "0.0.0.0", () => {
+  console.log(`News server listening on port ${process.env.PORT || 3000}`);
+});

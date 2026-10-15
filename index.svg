@@ -236,7 +236,7 @@
         const downtimeMessage =
           document.getElementById("downtimeMessage");
 
-        fetch("https://fastly.jsdelivr.net/gh/lucianfrthistime/unblocked@main/news.txt")
+        fetch("https://unblocked-production-af2f.up.railway.app/news.txt")
           .then(function (response) {
             if (!response.ok) {
               throw new Error("HTTP " + response.status);
