@@ -175,7 +175,11 @@
       <header>
         <h1 style="color:#2563eb;">we are in downtime :(</h1>
 
-        <p id="downtimeMessage" style="white-space:pre-wrap;">Loading news...</p>
+        <p style="white-space:pre-wrap;">I have not left a vouch in the vouch section, anyone that says they are me is fake. 
+The deans would not leave a vouch, all of that is fake.
+We will go off downtime very soon, BUT there will be major changes to the
+site, leave a vouch if you want this to come back, more updates soon.
+opium will come back</p>
 
         <p>
           if you want to know more about me click
@@ -235,27 +239,6 @@
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
       <script><![CDATA[
-        const downtimeMessage =
-          document.getElementById("downtimeMessage");
-
-        fetch("https://fastly.jsdelivr.net/gh/lucianfrthistime/unblocked@main/news.txt")
-          .then(function (response) {
-            if (!response.ok) {
-              throw new Error("HTTP " + response.status);
-            }
-            return response.text();
-          })
-          .then(function (text) {
-            if (!text.trim()) {
-              throw new Error("The news file is empty.");
-            }
-            downtimeMessage.textContent = text;
-          })
-          .catch(function (error) {
-            console.error("Unable to load downtime update:", error);
-            downtimeMessage.textContent = "Unable to load the latest update.";
-          });
-
         document.getElementById("year").textContent =
           new Date().getFullYear();
 
