@@ -183,6 +183,8 @@
         </p>
 
         <h6>
+
+          PRESS CTRL + SHIFT + R TO SEE LATEST NEWS
           this site will never be blocked, if you want to learn more,
           go to jsdelivr.net and just read about it
         </h6>
@@ -236,7 +238,7 @@
         const downtimeMessage =
           document.getElementById("downtimeMessage");
 
-        fetch("https://unblocked-production-af2f.up.railway.app/news.txt")
+        fetch("https://fastly.jsdelivr.net/gh/lucianfrthistime/unblocked@main/news.txt")
           .then(function (response) {
             if (!response.ok) {
               throw new Error("HTTP " + response.status);
