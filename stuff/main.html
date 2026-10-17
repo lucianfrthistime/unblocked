@@ -1,0 +1,4416 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width,initial-scale=1" name="viewport" />
+    <title>lucianland</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&amp;family=Playfair+Display:ital@1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/highlight.js@latest/styles/github-dark.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/marked@latest/lib/marked.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@latest/lib/index.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@latest/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-highlight@latest/lib/index.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@latest/dist/purify.min.js"></script>
+    <style>
+      *,
+      ::after,
+      ::before {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .is-hidden-permanent {
+        display: none;
+      }
+      .hidden {
+        display: none !important;
+      }
+      :root {
+        --vh: 1vh;
+        --tog-w: clamp(36px, 5vw, 44px);
+        --tog-h: clamp(20px, 2.8vw, 24px);
+        --accent: #8b7cf6;
+        --accent-bright: #a78bfa;
+        --accent-dim: #6d5cd6;
+        --accent-glow: rgba(139, 124, 246, 0.35);
+      }
+      body {
+        height: calc(var(--vh) * 100);
+        overflow: hidden;
+        background: #080810;
+        font-family: Inter, sans-serif;
+        color: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas#stars {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        padding: 0 clamp(16px, 4vw, 32px);
+      }
+      .wordmark {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: clamp(64px, 11vw, 100px);
+        font-weight: 400;
+        background: linear-gradient(
+          135deg,
+          #fff 40%,
+          var(--accent-bright) 130%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.01em;
+        margin-bottom: clamp(10px, 1.6vw, 16px);
+        user-select: none;
+      }
+      .tagline {
+        font-family: "Playfair Display", serif;
+        font-style: normal;
+        font-size: clamp(13px, 1.5vw, 17px);
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: clamp(26px, 3.2vw, 36px);
+        letter-spacing: 0.01em;
+        user-select: none;
+      }
+      .tagline a {
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .tagline a:hover {
+        color: #fff;
+      }
+      .search-wrap {
+        position: relative;
+        width: min(480px, 100%);
+        transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .search-wrap.expanded {
+        width: min(620px, 100%);
+      }
+      .search-bar {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: clamp(8px, 1.5vw, 12px);
+        padding: 0 clamp(10px, 2vw, 16px);
+        width: 100%;
+        gap: clamp(6px, 1.2vw, 10px);
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .search-wrap.expanded .search-bar {
+        border-color: var(--accent-dim);
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: clamp(8px, 1.5vw, 12px);
+      }
+      .search-wrap.expanded.has-ac .search-bar {
+        border-radius: clamp(8px, 1.5vw, 12px) clamp(8px, 1.5vw, 12px) 0 0;
+      }
+      .search-bar svg {
+        width: 14px;
+        height: 14px;
+        stroke: rgba(255, 255, 255, 0.35);
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+        transition: stroke 0.2s;
+      }
+      .search-wrap.expanded .search-bar svg {
+        stroke: var(--accent-bright);
+      }
+      .search-bar input {
+        flex: 1;
+        background: 0 0;
+        border: none;
+        outline: 0;
+        font-family: inherit;
+        font-size: clamp(12px, 1.6vw, 14px);
+        font-weight: 300;
+        color: #e6e6e6;
+        padding: clamp(10px, 1.8vw, 13px) 0;
+      }
+      .search-bar input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .autocomplete {
+        display: none;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        background: rgba(12, 12, 20, 0.99);
+        border: 1px solid var(--accent-dim);
+        border-top: none;
+        border-radius: 0 0 clamp(8px, 1.5vw, 12px) clamp(8px, 1.5vw, 12px);
+        overflow: hidden;
+        z-index: 10;
+      }
+      .search-wrap.expanded .autocomplete.has-items {
+        display: block;
+      }
+      .ac-item {
+        padding: clamp(9px, 1.6vw, 12px) clamp(10px, 2vw, 16px);
+        font-size: clamp(12px, 1.5vw, 14px);
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition:
+          background 0.1s,
+          color 0.1s;
+      }
+      .ac-item:last-child {
+        border-bottom: none;
+      }
+      .ac-item.selected,
+      .ac-item:hover {
+        background: rgba(139, 124, 246, 0.12);
+        color: #fff;
+      }
+      .ac-item svg {
+        width: 11px;
+        height: 11px;
+        stroke: rgba(255, 255, 255, 0.4);
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+      }
+      .shortcuts {
+        --sc-cols: 6;
+        --sc-gap: clamp(6px, 1.2vw, 8px);
+        --sc-icon: clamp(26px, 6.2vw, 32px);
+        --sc-font: clamp(10px, 2.1vw, 11px);
+        --sc-line: 1.28;
+        --sc-pad-x: clamp(4px, 1.1vw, 7px);
+        --sc-pad-t: clamp(9px, 2.3vw, 12px);
+        --sc-pad-b: clamp(7px, 1.92vw, 10px);
+        --sc-stack: clamp(4px, 1.15vw, 6px);
+        margin-top: clamp(10px, 2vw, 16px);
+        display: grid;
+        grid-template-columns: repeat(var(--sc-cols), minmax(0, 1fr));
+        grid-auto-rows: 1fr;
+        gap: var(--sc-gap);
+        width: min(480px, 100%);
+      }
+      @media (max-width: 420px) {
+        .shortcuts {
+          --sc-cols: 4;
+          --sc-gap: clamp(6px, 1.8vw, 8px);
+          --sc-icon: clamp(28px, 8vw, 34px);
+          --sc-font: clamp(10px, 2.5vw, 11.5px);
+          --sc-pad-x: clamp(5px, 1.5vw, 7px);
+          --sc-pad-t: clamp(10px, 3vw, 13px);
+          --sc-pad-b: clamp(8px, 2.4vw, 11px);
+          --sc-stack: clamp(5px, 1.6vw, 7px);
+          width: min(340px, 100%);
+        }
+      }
+      .shortcut {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--sc-stack);
+        padding: var(--sc-pad-t) var(--sc-pad-x) var(--sc-pad-b);
+        background: rgba(255, 255, 255, 0.045);
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: clamp(8px, 1.5vw, 12px);
+        cursor: pointer;
+        user-select: none;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          transform 0.15s;
+      }
+      .shortcut-delete {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border: none;
+        border-radius: 5px;
+        background: rgba(20, 18, 30, 0.8);
+        color: #ff5c5c;
+        cursor: pointer;
+        opacity: 0;
+        transition:
+          opacity 0.15s,
+          background 0.15s;
+      }
+      .shortcut-delete svg {
+        width: 12px;
+        height: 12px;
+      }
+      .shortcut:hover .shortcut-delete {
+        opacity: 1;
+      }
+      .shortcut-delete:hover {
+        background: rgba(255, 92, 92, 0.25);
+      }
+      .shortcut:hover {
+        background: rgba(139, 124, 246, 0.1);
+        border-color: var(--accent-dim);
+        transform: translateY(-2px);
+      }
+      .shortcut-icon {
+        width: var(--sc-icon);
+        height: var(--sc-icon);
+        border-radius: clamp(6px, 1vw, 8px);
+        object-fit: contain;
+        display: block;
+        flex-shrink: 0;
+        transition: transform 0.15s;
+      }
+      .shortcut:hover .shortcut-icon {
+        transform: translateY(-1px);
+      }
+      .shortcut-icon:not([src]) {
+        background: rgba(255, 255, 255, 0.07);
+      }
+      .shortcut span {
+        height: calc(2 * var(--sc-font) * var(--sc-line));
+        flex-shrink: 0;
+        font-size: var(--sc-font);
+        line-height: var(--sc-line);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 400;
+        text-align: center;
+        width: 100%;
+        transition: color 0.15s;
+      }
+      .shortcut:hover span {
+        color: #fff;
+      }
+      .panel {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        background: #111;
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .panel.open {
+        transform: translateY(0);
+      }
+      .panel-bar-wrap {
+        display: flex;
+        background: #141414;
+        border-bottom: 1px solid #1e1e1e;
+        flex-shrink: 0;
+        padding: clamp(6px, 1.2vw, 9px) clamp(8px, 1.5vw, 12px);
+      }
+      .panel-bar {
+        display: flex;
+        align-items: center;
+        gap: clamp(4px, 1vw, 6px);
+        width: 100%;
+      }
+      .nav-btn-group {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        flex-shrink: 0;
+      }
+      .nb {
+        background: 0 0;
+        border: none;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.4);
+        padding: clamp(4px, 0.8vw, 6px);
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        transition: color 0.15s;
+        flex-shrink: 0;
+      }
+      .nb:hover {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .nb svg {
+        width: clamp(12px, 1.8vw, 14px);
+        height: clamp(12px, 1.8vw, 14px);
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        display: block;
+      }
+      #reloadBtn {
+        position: relative;
+      }
+      #bookmarkIcon {
+        fill: currentColor;
+        stroke: none;
+      }
+      .reload-icon {
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+      }
+      #reloadBtn.loading .reload-icon {
+        opacity: 0;
+        transform: rotate(90deg) scale(0.6);
+      }
+      .reload-spinner-wrap {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: clamp(12px, 1.8vw, 14px);
+        height: clamp(12px, 1.8vw, 14px);
+        margin: calc(clamp(12px, 1.8vw, 14px) / -2) 0 0
+          calc(clamp(12px, 1.8vw, 14px) / -2);
+        opacity: 0;
+        transform: rotate(-90deg) scale(0.6);
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+        pointer-events: none;
+      }
+      #reloadBtn.loading .reload-spinner-wrap {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+      }
+      .reload-spinner-ring {
+        display: block;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.22);
+        border-top-color: currentColor;
+        animation: reloadSpin 0.7s linear infinite;
+        animation-play-state: paused;
+      }
+      #reloadBtn.loading .reload-spinner-ring {
+        animation-play-state: running;
+      }
+      @keyframes reloadSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .home-btn.confirm {
+        color: #e05555 !important;
+        animation: homePulse 0.6s ease-in-out infinite alternate;
+      }
+      @keyframes homePulse {
+        from {
+          color: #e05555;
+        }
+        to {
+          color: #f88;
+        }
+      }
+      .home-confirm-hint {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%) translateY(-4px);
+        white-space: nowrap;
+        font-size: clamp(10px, 1.2vw, 11px);
+        letter-spacing: 0.06em;
+        color: #e05555;
+        pointer-events: none;
+        opacity: 0;
+        transition:
+          opacity 0.18s,
+          transform 0.18s;
+        font-weight: 400;
+        background: rgba(20, 20, 20, 0.92);
+        border: 1px solid rgba(224, 85, 85, 0.3);
+        border-radius: 5px;
+        padding: 3px 8px;
+        z-index: 200;
+      }
+      .home-btn-wrap {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+        z-index: 1;
+      }
+      .home-btn-wrap.confirming .home-confirm-hint {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .home-countdown {
+        position: absolute;
+        bottom: 0;
+        left: 2px;
+        right: 2px;
+        height: 2px;
+        background: #e05555;
+        border-radius: 2px;
+        transform-origin: left;
+        transform: scaleX(0);
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .home-btn-wrap.confirming .home-countdown {
+        opacity: 1;
+        transform: scaleX(1);
+        animation: homeCountdown 5s linear forwards;
+      }
+      .home-countdown.no-anim {
+        animation: none;
+      }
+      @keyframes homeCountdown {
+        from {
+          transform: scaleX(1);
+        }
+        to {
+          transform: scaleX(0);
+        }
+      }
+      .addr-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: clamp(4px, 0.8vw, 6px);
+        background: #1a1a1a;
+        border: 1px solid #252525;
+        border-radius: clamp(5px, 1vw, 7px);
+        padding: 0 clamp(8px, 1.5vw, 12px);
+        min-width: 0;
+      }
+      .addr-wrap:focus-within {
+        border-color: #333;
+      }
+      .lock-icon {
+        width: clamp(10px, 1.3vw, 12px);
+        height: clamp(10px, 1.3vw, 12px);
+        stroke: rgba(255, 255, 255, 0.25);
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+        transition: stroke 0.2s;
+      }
+      .lock-icon.secure {
+        stroke: #4caf7d;
+      }
+      .addr-sep {
+        color: rgba(255, 255, 255, 0.18);
+        font-size: clamp(10px, 1.2vw, 12px);
+        flex-shrink: 0;
+        user-select: none;
+        line-height: 1;
+      }
+      .addr-input {
+        flex: 1;
+        background: 0 0;
+        border: none;
+        padding: clamp(5px, 1vw, 7px) 0;
+        font-family: inherit;
+        font-size: clamp(11px, 1.4vw, 13px);
+        color: rgba(255, 255, 255, 0.55);
+        outline: 0;
+        min-width: 0;
+      }
+      .addr-wrap:focus-within .addr-input {
+        color: #ccc;
+      }
+      .panel iframe {
+        flex: 1;
+        border: none;
+        background: #111;
+      }
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        background: rgba(8, 8, 16, 0.97);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        padding: 0 clamp(12px, 2vw, 24px);
+      }
+      .bottom-nav.hidden {
+        transform: translateY(100%);
+      }
+      .nav-stats {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        padding: clamp(8px, 1.5vw, 11px) 0 clamp(10px, 1.8vw, 13px);
+        flex-shrink: 0;
+      }
+      .nav-stat {
+        font-size: clamp(8px, 0.9vw, 10px);
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 0.06em;
+        font-weight: 300;
+        white-space: nowrap;
+      }
+      .nav-stat a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .nav-stat a:hover {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .nav-buttons {
+        display: flex;
+        align-items: center;
+      }
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(3px, 0.8vw, 5px);
+        padding: clamp(8px, 1.5vw, 11px) clamp(10px, 1.5vw, 18px)
+          clamp(10px, 1.8vw, 13px);
+        background: 0 0;
+        border: none;
+        color: rgba(255, 255, 255, 0.55);
+        font-family: inherit;
+        font-size: clamp(9px, 1vw, 10px);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: color 0.15s;
+        position: relative;
+      }
+      .nav-item::before {
+        content: "";
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--accent-bright);
+        opacity: 0;
+        transform: translateX(-50%) scale(0.4);
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+      }
+      .nav-item:hover {
+        color: #fff;
+      }
+      .nav-item.active {
+        color: var(--accent-bright);
+      }
+      .nav-item.active::before {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
+      .nav-item svg {
+        width: clamp(14px, 2.2vw, 17px);
+        height: clamp(14px, 2.2vw, 17px);
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.6;
+      }
+      .settings-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .settings-screen.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .settings-inner {
+        width: min(720px, 92vw);
+        height: min(560px, 85vh);
+        background: #09090f;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transform: translateY(16px) scale(0.98);
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+      }
+      .settings-screen.open .settings-inner {
+        transform: translateY(0) scale(1);
+      }
+      .screen-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: clamp(10px, 1.8vw, 16px);
+        padding: clamp(8px, 1.2vw, 10px) clamp(12px, 2vw, 20px)
+          clamp(8px, 1.2vw, 10px) clamp(12px, 2vw, 20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+      }
+      .settings-inner .screen-header {
+        padding-left: 0;
+      }
+      .screen-header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex-shrink: 0;
+      }
+      .settings-inner .screen-header-left {
+        width: clamp(130px, 18vw, 190px);
+        padding-left: clamp(14px, 2vw, 22px);
+      }
+      .screen-header-title {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: clamp(18px, 2.6vw, 24px);
+        color: #fff;
+        line-height: 1;
+        user-select: none;
+        cursor: default;
+      }
+      .screen-header-sub {
+        font-size: clamp(8px, 1vw, 10px);
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 400;
+      }
+      .screen-minimize-btn {
+        background: 0 0;
+        border: none;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.4);
+        padding: clamp(8px, 1.4vw, 12px) clamp(14px, 2.5vw, 22px);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          color 0.15s,
+          background 0.15s;
+        flex-shrink: 0;
+        min-width: clamp(44px, 7vw, 64px);
+        min-height: clamp(36px, 5vw, 44px);
+      }
+      .screen-minimize-btn:hover {
+        color: rgba(255, 255, 255, 0.65);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .screen-minimize-btn svg {
+        width: clamp(18px, 2.4vw, 22px);
+        height: clamp(18px, 2.4vw, 22px);
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        display: block;
+      }
+      .settings-body {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+      }
+      .settings-sidebar {
+        width: clamp(130px, 18vw, 190px);
+        flex-shrink: 0;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        overflow-y: auto;
+        padding: clamp(10px, 1.5vw, 16px) 0;
+      }
+      .settings-sidebar::-webkit-scrollbar {
+        display: none;
+      }
+      .sidebar-item {
+        padding: clamp(7px, 1.1vw, 10px) clamp(14px, 2vw, 22px);
+        font-size: clamp(11px, 1.4vw, 13px);
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.45);
+        cursor: pointer;
+        transition:
+          color 0.15s,
+          border-color 0.15s,
+          background 0.15s;
+        letter-spacing: 0.04em;
+        border-left: 2px solid transparent;
+      }
+      .sidebar-item:hover {
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .sidebar-item.active {
+        color: #fff;
+        border-left-color: var(--accent-bright);
+        background: rgba(139, 124, 246, 0.1);
+      }
+      .settings-tabs {
+        display: none;
+        overflow-x: auto;
+        flex-shrink: 0;
+        padding: clamp(10px, 2vw, 14px) clamp(14px, 3vw, 22px);
+        gap: clamp(6px, 1.5vw, 9px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        scrollbar-width: none;
+      }
+      .settings-tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .tab-item {
+        flex-shrink: 0;
+        padding: clamp(6px, 1.2vw, 9px) clamp(12px, 2.2vw, 18px);
+        font-size: clamp(10px, 1.3vw, 12px);
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.45);
+        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 40px;
+        background: 0 0;
+        font-family: inherit;
+        letter-spacing: 0.05em;
+        transition: all 0.18s;
+        white-space: nowrap;
+      }
+      .tab-item:hover {
+        color: rgba(255, 255, 255, 0.8);
+        border-color: var(--accent-dim);
+      }
+      .tab-item.active {
+        color: #fff;
+        border-color: var(--accent);
+        background: rgba(139, 124, 246, 0.16);
+      }
+      .settings-panels {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+        scrollbar-width: thin;
+        scrollbar-color: #1a1a28 transparent;
+      }
+      .settings-panels::-webkit-scrollbar {
+        width: 3px;
+      }
+      .settings-panels::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+      }
+      .settings-panel-section {
+        padding: clamp(16px, 2.5vw, 26px) clamp(18px, 3vw, 36px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .settings-panel-section:last-child {
+        border-bottom: none;
+      }
+      .settings-spacer {
+        height: 20vh;
+      }
+      .category-label {
+        font-size: clamp(10px, 1.2vw, 12px);
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: clamp(10px, 1.5vw, 16px);
+      }
+      .category-rows {
+        display: flex;
+        flex-direction: column;
+      }
+      .setting-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: clamp(10px, 1.5vw, 14px) 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .category-rows .setting-row:last-child {
+        border-bottom: none;
+      }
+      .setting-label {
+        font-size: clamp(14px, 2vw, 17px);
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.85);
+        letter-spacing: -0.01em;
+      }
+      .toggle {
+        width: var(--tog-w);
+        height: var(--tog-h);
+        border-radius: calc(var(--tog-h));
+        background: rgba(255, 255, 255, 0.12);
+        position: relative;
+        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        transition:
+          background 0.22s,
+          border-color 0.22s;
+        flex-shrink: 0;
+      }
+      .toggle:hover {
+        border-color: rgba(255, 255, 255, 0.28);
+      }
+      .toggle.on {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .toggle.on:hover {
+        background: var(--accent-bright);
+        border-color: var(--accent-bright);
+      }
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: calc(50% - var(--tog-h) * 0.3);
+        left: calc(var(--tog-h) * 0.15);
+        width: calc(var(--tog-h) * 0.6);
+        height: calc(var(--tog-h) * 0.6);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.55);
+        transition:
+          left 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+          background 0.22s;
+      }
+      .toggle.on::after {
+        left: calc(var(--tog-w) - var(--tog-h) * 0.75);
+        background: #fff;
+      }
+      .setting-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: clamp(6px, 1vw, 8px);
+        padding: clamp(9px, 1.5vw, 12px) clamp(11px, 2vw, 15px);
+        font-family: inherit;
+        font-size: clamp(12px, 1.5vw, 14px);
+        color: rgba(255, 255, 255, 0.75);
+        outline: 0;
+        font-weight: 300;
+        width: clamp(140px, 26vw, 210px);
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .setting-input:focus {
+        border-color: var(--accent-dim);
+        color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+      .setting-input::placeholder {
+        color: rgba(255, 255, 255, 0.12);
+      }
+      .setting-select {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: clamp(6px, 1vw, 8px);
+        padding: clamp(9px, 1.5vw, 12px) clamp(11px, 2vw, 15px);
+        font-family: inherit;
+        font-size: clamp(12px, 1.5vw, 14px);
+        color: rgba(255, 255, 255, 0.75);
+        outline: 0;
+        font-weight: 300;
+        width: clamp(140px, 26vw, 210px);
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+        cursor: pointer;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .setting-select:focus {
+        border-color: var(--accent-dim);
+        color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+      .setting-select option {
+        background: #09090f;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .setting-action-btn {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: clamp(6px, 1vw, 8px);
+        padding: clamp(9px, 1.5vw, 12px) clamp(16px, 2.5vw, 22px);
+        font-family: inherit;
+        font-size: clamp(12px, 1.5vw, 14px);
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 300;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .setting-action-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.22);
+        color: #fff;
+      }
+      .setting-action-btn:active {
+        background: rgba(255, 255, 255, 0.15);
+      }
+      @media (max-width: 600px) {
+        .settings-sidebar {
+          display: none;
+        }
+        .settings-tabs {
+          display: flex;
+        }
+        .settings-body {
+          flex-direction: column;
+        }
+        .settings-inner {
+          width: 100vw;
+          height: 88dvh;
+          border-radius: 16px 16px 0 0;
+          transform: translateY(24px);
+        }
+        .settings-screen {
+          align-items: flex-end;
+        }
+        .settings-screen.open .settings-inner {
+          transform: translateY(0);
+        }
+        .settings-inner .screen-header {
+          padding: 10px 14px 10px 0;
+          gap: 8px;
+        }
+        .settings-inner .screen-header-left {
+          width: auto;
+          padding-left: 14px;
+        }
+        .settings-inner .screen-header-title {
+          font-size: 22px;
+        }
+        .settings-tabs {
+          padding: 8px 12px;
+          gap: 6px;
+        }
+        .tab-item {
+          padding: 5px 12px;
+          font-size: 11px;
+        }
+        .settings-panel-section {
+          padding: 12px 16px;
+        }
+        .category-label {
+          margin-bottom: 8px;
+          font-size: 10px;
+        }
+        .setting-row {
+          flex-wrap: nowrap;
+          gap: 10px;
+          padding: 10px 0;
+        }
+        .setting-label {
+          font-size: 13px;
+          flex: 1;
+          min-width: 0;
+        }
+        .setting-row:has(.setting-input),
+        .setting-row:has(.setting-select) {
+          flex-wrap: wrap;
+        }
+        .setting-input,
+        .setting-select {
+          width: 100%;
+          box-sizing: border-box;
+          font-size: 13px;
+          padding: 8px 12px;
+        }
+        .setting-action-btn {
+          font-size: 12px;
+          padding: 8px 14px;
+          flex-shrink: 0;
+        }
+        .settings-spacer {
+          display: none;
+        }
+        .effects-screen .screen-header-title,
+        .games-screen .screen-header-title {
+          font-size: 18px;
+        }
+        .effects-screen .screen-header-sub,
+        .games-screen .screen-header-sub {
+          font-size: 8px;
+        }
+        .effects-screen .screen-header,
+        .games-screen .screen-header {
+          gap: 8px;
+          padding: 8px 10px;
+        }
+        .screen-minimize-btn {
+          min-width: 36px;
+          min-height: 36px;
+          padding: 6px 10px;
+        }
+      }
+      .games-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        background: #09090f;
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .games-screen.open {
+        transform: translateY(0);
+      }
+      .games-search-bar {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: clamp(8px, 1.2vw, 12px);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: clamp(6px, 1vw, 8px);
+        padding: 0 clamp(12px, 2vw, 16px);
+        transition: border-color 0.15s;
+        min-width: 0;
+      }
+      .games-search-bar:focus-within {
+        border-color: var(--accent-dim);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+      .games-search-bar svg {
+        width: 13px;
+        height: 13px;
+        stroke: rgba(255, 255, 255, 0.4);
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+      }
+      .games-search-input {
+        flex: 1;
+        background: 0 0;
+        border: none;
+        outline: 0;
+        font-family: inherit;
+        font-size: clamp(12px, 1.5vw, 14px);
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.75);
+        padding: clamp(9px, 1.6vw, 12px) 0;
+      }
+      .games-search-input::placeholder {
+        color: rgba(255, 255, 255, 0.35);
+      }
+      .games-grid-wrap {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-anchor: none;
+        scrollbar-width: thin;
+        scrollbar-color: #1a1a28 transparent;
+      }
+      .games-grid-wrap::-webkit-scrollbar {
+        width: 3px;
+      }
+      .games-grid-wrap::-webkit-scrollbar-thumb {
+        background: #1a1a28;
+        border-radius: 2px;
+      }
+      .games-grid-sizer {
+        position: relative;
+        box-sizing: content-box;
+        padding: clamp(14px, 2.5vw, 24px) 0;
+      }
+      .games-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(clamp(155px, 19vw, 220px), 1fr)
+        );
+        gap: clamp(6px, 1.1vw, 10px);
+        align-content: start;
+        padding: 0 clamp(20px, 4vw, 40px);
+      }
+      .games-grid-wrap.flow .games-grid-sizer {
+        height: auto !important;
+      }
+      .games-grid-wrap.flow .games-grid {
+        position: static;
+      }
+      .game-card {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: clamp(8px, 1.5vw, 12px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 8px 24px rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          transform 0.15s,
+          box-shadow 0.15s;
+        overflow: hidden;
+        font-family: inherit;
+        color: rgba(255, 255, 255, 0.6);
+        text-align: center;
+        padding: 0;
+      }
+      .game-card:hover {
+        background: rgba(139, 124, 246, 0.09);
+        border-color: var(--accent-dim);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+      }
+      .game-card:active {
+        transform: scale(0.97);
+      }
+      .game-card-img {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .game-card-placeholder {
+        width: 100%;
+        aspect-ratio: 16/9;
+        flex-shrink: 0;
+        background: linear-gradient(
+          100deg,
+          rgba(255, 255, 255, 0.03) 40%,
+          rgba(139, 124, 246, 0.1) 50%,
+          rgba(255, 255, 255, 0.03) 60%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 2.2s ease-in-out infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+      .game-card-name {
+        flex-shrink: 0;
+        height: calc(2.6em + clamp(14px, 2.2vw, 21px));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 clamp(8px, 1.2vw, 12px);
+        font-size: clamp(10px, 1.2vw, 12px);
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        line-height: 1.3;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .game-card-name > span {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+      }
+      .games-loading {
+        grid-column: 1/-1;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: clamp(11px, 1.4vw, 13px);
+        padding: clamp(24px, 4vw, 48px);
+        letter-spacing: 0.12em;
+      }
+      .games-search-count {
+        font-size: clamp(10px, 1.2vw, 12px);
+        color: rgba(255, 255, 255, 0.4);
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-weight: 300;
+        letter-spacing: 0.04em;
+        padding-right: clamp(4px, 0.8vw, 8px);
+      }
+      .cloud-toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: clamp(6px, 1vw, 8px);
+        flex-shrink: 0;
+        padding-right: clamp(8px, 1.2vw, 12px);
+      }
+      .cloud-toggle-label {
+        font-size: clamp(10px, 1.2vw, 12px);
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: 300;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+      }
+      .cloud-toggle {
+        width: clamp(32px, 4.5vw, 38px);
+        height: clamp(18px, 2.5vw, 20px);
+        border-radius: calc(clamp(18px, 2.5vw, 20px));
+        background: rgba(255, 255, 255, 0.12);
+        position: relative;
+        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        transition:
+          background 0.22s,
+          border-color 0.22s;
+        flex-shrink: 0;
+      }
+      .cloud-toggle:hover {
+        border-color: rgba(255, 255, 255, 0.28);
+      }
+      .cloud-toggle.on {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .cloud-toggle.on:hover {
+        background: var(--accent-bright);
+        border-color: var(--accent-bright);
+      }
+      .cloud-toggle::after {
+        content: "";
+        position: absolute;
+        top: calc(50% - clamp(18px, 2.5vw, 20px) * 0.3);
+        left: calc(clamp(18px, 2.5vw, 20px) * 0.15);
+        width: calc(clamp(18px, 2.5vw, 20px) * 0.6);
+        height: calc(clamp(18px, 2.5vw, 20px) * 0.6);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.55);
+        transition:
+          left 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+          background 0.22s;
+      }
+      .cloud-toggle.on::after {
+        left: calc(clamp(32px, 4.5vw, 38px) - clamp(18px, 2.5vw, 20px) * 0.75);
+        background: #fff;
+      }
+      #gameFrame {
+        display: none;
+        flex: 1;
+        border: none;
+        outline: 0;
+        background: #000;
+      }
+      #gameFrame.visible {
+        display: block;
+      }
+      #cloudVideoWrap {
+        display: none;
+        position: relative;
+        flex: 1;
+        background: #000;
+      }
+      #cloudVideoWrap.visible {
+        display: flex;
+      }
+      #cloudVideo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+      }
+      #cloudVideoWrap:fullscreen {
+        width: 100vw;
+        height: 100vh;
+      }
+      #cloudOverlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 5;
+      }
+      #cloudOverlay.hidden {
+        display: none;
+      }
+      #cloudRelockHint {
+        display: none;
+        position: absolute;
+        inset: 0;
+        z-index: 6;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.35);
+        color: #fff;
+        font-size: clamp(13px, 1.6vw, 15px);
+        font-weight: 500;
+        cursor: pointer;
+      }
+      #cloudRelockHint.visible {
+        display: flex;
+      }
+      #cloudPhase {
+        font-size: clamp(14px, 2vw, 18px);
+        font-weight: 500;
+        color: #fff;
+      }
+      #cloudPhaseDetail {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: clamp(11px, 1.4vw, 13px);
+        max-width: 80%;
+        text-align: center;
+      }
+      .cloud-spinner {
+        width: 24px;
+        height: 24px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (max-width: 540px) {
+        .games-search-count {
+          display: none;
+        }
+        .cloud-toggle-label {
+          display: none;
+        }
+      }
+      .game-player {
+        position: fixed;
+        inset: 0;
+        z-index: 300;
+        display: flex;
+        flex-direction: column;
+        background: #111;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .game-player.open {
+        transform: translateY(0);
+      }
+      .game-player-bar-wrap {
+        display: flex;
+        background: #141414;
+        border-bottom: 1px solid #1e1e1e;
+        flex-shrink: 0;
+        padding: clamp(6px, 1.2vw, 9px) clamp(8px, 1.5vw, 12px);
+      }
+      .game-player-bar {
+        display: flex;
+        align-items: center;
+        gap: clamp(4px, 1vw, 6px);
+        width: 100%;
+      }
+      .game-player-close {
+        background: 0 0;
+        border: none;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.45);
+        padding: clamp(6px, 1vw, 8px);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition:
+          color 0.15s,
+          background 0.15s;
+      }
+      .game-player-close:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .game-player-close.confirm {
+        color: #ff4d4d;
+        background: rgba(255, 77, 77, 0.12);
+        animation: gameClosePulse 0.6s ease-in-out infinite alternate;
+      }
+      @keyframes gameClosePulse {
+        from {
+          color: #ff4d4d;
+        }
+        to {
+          color: #f88;
+        }
+      }
+      .game-player-close.confirm:hover {
+        background: rgba(255, 77, 77, 0.2);
+      }
+      .game-player-close-wrap {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+        z-index: 1;
+      }
+      .game-close-confirm-hint {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%) translateY(-4px);
+        white-space: nowrap;
+        font-size: clamp(10px, 1.2vw, 11px);
+        letter-spacing: 0.06em;
+        color: #e05555;
+        pointer-events: none;
+        opacity: 0;
+        transition:
+          opacity 0.18s,
+          transform 0.18s;
+        font-weight: 400;
+        background: rgba(20, 20, 20, 0.92);
+        border: 1px solid rgba(224, 85, 85, 0.3);
+        border-radius: 5px;
+        padding: 3px 8px;
+        z-index: 200;
+      }
+      .game-player-close-wrap.confirming .game-close-confirm-hint {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .game-close-countdown {
+        position: absolute;
+        bottom: 0;
+        left: 2px;
+        right: 2px;
+        height: 2px;
+        background: #e05555;
+        border-radius: 2px;
+        transform-origin: left;
+        transform: scaleX(0);
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .game-player-close-wrap.confirming .game-close-countdown {
+        opacity: 1;
+        transform: scaleX(1);
+        animation: gameCloseCountdown 5s linear forwards;
+      }
+      .game-close-countdown.no-anim {
+        animation: none;
+      }
+      @keyframes gameCloseCountdown {
+        from {
+          transform: scaleX(1);
+        }
+        to {
+          transform: scaleX(0);
+        }
+      }
+      .game-player-close svg {
+        width: clamp(16px, 2vw, 18px);
+        height: clamp(16px, 2vw, 18px);
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2.5;
+        display: block;
+      }
+      .game-player-id {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: clamp(4px, 0.8vw, 6px);
+        background: #1a1a1a;
+        border: 1px solid #252525;
+        border-radius: clamp(5px, 1vw, 7px);
+        padding: 0 clamp(8px, 1.5vw, 12px);
+        min-width: 0;
+      }
+      .game-player-id-text {
+        flex: 1;
+        padding: clamp(5px, 1vw, 7px) 0;
+        font-family: inherit;
+        font-size: clamp(11px, 1.4vw, 13px);
+        color: rgba(255, 255, 255, 0.55);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        user-select: none;
+      }
+      .game-player-time-left {
+        flex-shrink: 0;
+        padding: clamp(5px, 1vw, 7px) 0;
+        font-family: inherit;
+        font-size: clamp(11px, 1.4vw, 13px);
+        font-variant-numeric: tabular-nums;
+        color: rgba(255, 255, 255, 0.4);
+        white-space: nowrap;
+        user-select: none;
+      }
+      .game-player iframe {
+        flex: 1;
+        border: none;
+        outline: 0;
+        background: #000;
+        min-height: 0;
+        display: block;
+      }
+      .game-player-loading {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.18);
+        font-size: clamp(11px, 1.4vw, 13px);
+        letter-spacing: 0.12em;
+      }
+      .effects-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        background: #09090f;
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .effects-screen.open {
+        transform: translateY(0);
+      }
+      .effects-search-bar {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: clamp(8px, 1.2vw, 12px);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: clamp(6px, 1vw, 8px);
+        padding: 0 clamp(12px, 2vw, 16px);
+        transition: border-color 0.15s;
+        min-width: 0;
+      }
+      .effects-search-bar:focus-within {
+        border-color: var(--accent-dim);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+      .effects-search-bar svg {
+        width: 13px;
+        height: 13px;
+        stroke: rgba(255, 255, 255, 0.4);
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+      }
+      .effects-search-input {
+        flex: 1;
+        background: 0 0;
+        border: none;
+        outline: 0;
+        font-family: inherit;
+        font-size: clamp(12px, 1.5vw, 14px);
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.75);
+        padding: clamp(9px, 1.6vw, 12px) 0;
+      }
+      .effects-search-input::placeholder {
+        color: rgba(255, 255, 255, 0.35);
+      }
+      .effects-grid-wrap {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-anchor: none;
+        scrollbar-width: thin;
+        scrollbar-color: #1a1a28 transparent;
+      }
+      .effects-grid-sizer {
+        position: relative;
+        box-sizing: content-box;
+        padding: clamp(14px, 2.5vw, 24px) 0;
+      }
+      .effects-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(clamp(100px, 14vw, 140px), 1fr)
+        );
+        gap: clamp(8px, 1.5vw, 14px);
+        align-content: start;
+        padding: 0 clamp(20px, 4vw, 40px);
+      }
+      .effects-grid-wrap.flow .effects-grid-sizer {
+        height: auto !important;
+      }
+      .effects-grid-wrap.flow .effects-grid {
+        position: static;
+      }
+      .effects-grid-wrap::-webkit-scrollbar {
+        width: 3px;
+      }
+      .effects-grid-wrap::-webkit-scrollbar-thumb {
+        background: #1a1a28;
+        border-radius: 2px;
+      }
+      .effect-btn {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        height: clamp(88px, 12vw, 116px);
+        gap: clamp(6px, 1vw, 8px);
+        padding: clamp(12px, 2vw, 16px) clamp(8px, 1.2vw, 12px);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: clamp(8px, 1.5vw, 12px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 8px 24px rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          transform 0.15s,
+          box-shadow 0.15s;
+        font-family: inherit;
+        color: rgba(255, 255, 255, 0.6);
+        text-align: center;
+        letter-spacing: 0.03em;
+        line-height: 1.3;
+        overflow: hidden;
+      }
+      .effect-btn:hover {
+        background: rgba(139, 124, 246, 0.09);
+        border-color: var(--accent-dim);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+      }
+      .effect-btn:active {
+        transform: scale(0.95);
+      }
+      .effect-btn.playing {
+        background: rgba(139, 124, 246, 0.16);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .effect-btn.skeleton {
+        cursor: default;
+        background: linear-gradient(
+          100deg,
+          rgba(255, 255, 255, 0.03) 40%,
+          rgba(139, 124, 246, 0.1) 50%,
+          rgba(255, 255, 255, 0.03) 60%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 2.2s ease-in-out infinite;
+      }
+      .effect-btn svg {
+        width: clamp(18px, 3vw, 22px);
+        height: clamp(18px, 3vw, 22px);
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.6;
+        flex-shrink: 0;
+      }
+      .effect-btn.playing svg {
+        animation: effectPulse 0.8s ease-in-out infinite alternate;
+      }
+      @keyframes effectPulse {
+        from {
+          opacity: 0.6;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .effect-download {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.35);
+        color: rgba(255, 255, 255, 0.55);
+        opacity: 0.55;
+        transition:
+          opacity 0.15s,
+          background 0.15s,
+          color 0.15s;
+      }
+      .effect-btn:hover .effect-download {
+        opacity: 1;
+      }
+      .effect-download:hover {
+        background: var(--accent);
+        color: #fff;
+      }
+      .effect-download svg {
+        width: 12px;
+        height: 12px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+      }
+      .effect-btn span {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        width: 100%;
+        text-align: center;
+        word-break: break-word;
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .effects-loading {
+        grid-column: 1/-1;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: clamp(11px, 1.4vw, 13px);
+        padding: clamp(24px, 4vw, 48px);
+        letter-spacing: 0.12em;
+      }
+      .effects-footer {
+        padding: clamp(10px, 1.8vw, 14px) clamp(20px, 4vw, 40px);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        gap: clamp(10px, 2vw, 16px);
+        flex-shrink: 0;
+      }
+      .effects-footer svg {
+        width: clamp(14px, 2vw, 18px);
+        height: clamp(14px, 2vw, 18px);
+        stroke: rgba(255, 255, 255, 0.5);
+        fill: none;
+        stroke-width: 1.8;
+        flex-shrink: 0;
+      }
+      .volume-slider {
+        flex: 1;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 2px;
+        outline: 0;
+        cursor: pointer;
+      }
+      .volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: clamp(13px, 1.7vw, 15px);
+        height: clamp(13px, 1.7vw, 15px);
+        border-radius: 50%;
+        background: var(--accent-bright);
+        box-shadow:
+          0 0 0 4px var(--accent-glow),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.1s,
+          box-shadow 0.15s;
+      }
+      .volume-slider::-webkit-slider-thumb:hover {
+        background: #fff;
+        transform: scale(1.15);
+        box-shadow:
+          0 0 0 6px var(--accent-glow),
+          0 2px 8px rgba(0, 0, 0, 0.5);
+      }
+      .volume-slider::-moz-range-track {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 2px;
+      }
+      .volume-slider::-moz-range-progress {
+        height: 4px;
+        background: var(--accent);
+        border-radius: 2px;
+      }
+      .volume-slider::-moz-range-thumb {
+        width: clamp(13px, 1.7vw, 15px);
+        height: clamp(13px, 1.7vw, 15px);
+        border-radius: 50%;
+        background: var(--accent-bright);
+        box-shadow:
+          0 0 0 4px var(--accent-glow),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+        cursor: pointer;
+        border: none;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+      }
+      .volume-slider::-moz-range-thumb:hover {
+        background: #fff;
+        transform: scale(1.15);
+      }
+      .ext-prompt {
+        position: fixed;
+        bottom: clamp(16px, 3vw, 24px);
+        right: clamp(16px, 3vw, 24px);
+        z-index: 99999;
+        width: min(300px, calc(100vw - 32px));
+        background: rgba(8, 8, 16, 0.35);
+        backdrop-filter: blur(20px) saturate(140%);
+        -webkit-backdrop-filter: blur(20px) saturate(140%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        border-radius: clamp(10px, 1.5vw, 14px);
+        padding: clamp(14px, 2.5vw, 18px) clamp(16px, 2.5vw, 20px);
+        font-family: Inter, sans-serif;
+        color: #e0e0e0;
+        opacity: 0;
+        transform: translateY(16px) scale(0.96);
+        transition:
+          opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .ext-prompt.open {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: all;
+      }
+      .ext-prompt-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: clamp(10px, 1.2vw, 11px);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        margin-bottom: 6px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .ext-prompt-name {
+        font-family: Inter, sans-serif;
+        font-weight: 600;
+        font-size: clamp(16px, 2vw, 18px);
+        background: linear-gradient(
+          135deg,
+          #fff 30%,
+          var(--accent-bright) 140%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.01em;
+        margin-bottom: 4px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .ext-prompt-question {
+        font-size: clamp(12px, 1.4vw, 13px);
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.55);
+        margin-bottom: 14px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .ext-prompt.open .ext-prompt-eyebrow {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 60ms;
+      }
+      .ext-prompt.open .ext-prompt-name {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 0.11s;
+      }
+      .ext-prompt.open .ext-prompt-question {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 0.16s;
+      }
+      .ext-prompt.open .ext-prompt-btns {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 0.21s;
+      }
+      .ext-prompt-btns {
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .ext-prompt-btn {
+        flex: 1;
+        padding: clamp(7px, 1.2vw, 9px) 0;
+        border-radius: clamp(6px, 1vw, 8px);
+        font-family: inherit;
+        font-size: clamp(12px, 1.4vw, 13px);
+        font-weight: 400;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s,
+          transform 0.12s;
+      }
+      .ext-prompt-btn:active {
+        transform: scale(0.94);
+      }
+      .ext-prompt-btn.yes {
+        background: var(--accent-glow);
+        border-color: rgba(139, 124, 246, 0.4);
+        color: #fff;
+      }
+      .ext-prompt-btn.yes:hover {
+        background: rgba(139, 124, 246, 0.5);
+        border-color: var(--accent-bright);
+      }
+      .ext-prompt-btn.no {
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.7);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      .ext-prompt-btn.no:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+      .ai-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: flex;
+        background: #09090f;
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .ai-screen.open {
+        transform: translateY(0);
+      }
+      .ai-container {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      .ai-sidebar {
+        width: 260px;
+        background: #0c0c14;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        position: relative;
+      }
+      .ai-sidebar-header {
+        padding: 18px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .ai-logo-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .ai-sidebar-actions {
+        padding: 10px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .ai-sidebar-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        background: 0 0;
+        border: none;
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.6);
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 400;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        text-align: left;
+      }
+      .ai-sidebar-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .ai-sidebar-btn svg {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+      }
+      .ai-sidebar-section {
+        padding: 10px 8px;
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+      }
+      .ai-sidebar-section::-webkit-scrollbar {
+        width: 3px;
+      }
+      .ai-sidebar-section::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+      }
+      .ai-section-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.4);
+        padding: 6px 10px 4px;
+      }
+      .ai-recents-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+      .ai-empty-state {
+        padding: 16px 10px;
+        text-align: center;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.25);
+      }
+      .ai-recent-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 8px 9px 10px;
+        background: 0 0;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        text-align: left;
+      }
+      .ai-recent-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .ai-recent-item.active {
+        background: rgba(167, 139, 250, 0.12);
+        color: rgba(255, 255, 255, 0.95);
+      }
+      .ai-recent-item-title {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ai-recent-item-delete {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border: none;
+        border-radius: 5px;
+        background: 0 0;
+        color: #ff5c5c;
+        cursor: pointer;
+        opacity: 0;
+        transition:
+          opacity 0.15s,
+          background 0.15s;
+      }
+      .ai-recent-item-delete svg {
+        width: 13px;
+        height: 13px;
+      }
+      .ai-recent-item:hover .ai-recent-item-delete {
+        opacity: 1;
+      }
+      .ai-recent-item-delete:hover {
+        background: rgba(255, 92, 92, 0.15);
+      }
+      .ai-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      .ai-close-btn-top {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: 0 0;
+        border: none;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.4);
+        padding: 10px 18px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          color 0.15s,
+          background 0.15s;
+        z-index: 10;
+      }
+      .ai-close-btn-top:hover {
+        color: rgba(255, 255, 255, 0.65);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .ai-close-btn-top svg {
+        width: 20px;
+        height: 20px;
+      }
+      .ai-status-bottom {
+        position: absolute;
+        bottom: 12px;
+        left: 16px;
+        z-index: 10;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 260px;
+        pointer-events: none;
+      }
+      .ai-chat-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 40px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+      }
+      .ai-chat-container::-webkit-scrollbar {
+        width: 3px;
+      }
+      .ai-chat-container::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+      }
+      .ai-welcome {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        text-align: center;
+        width: 100%;
+        max-width: 700px;
+      }
+      .ai-welcome-title {
+        font-size: clamp(28px, 5vw, 40px);
+        font-weight: 400;
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+      .ai-shine {
+        display: inline-block;
+        background: linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.75) 40%,
+          #a78bfa 50%,
+          rgba(255, 255, 255, 0.75) 60%
+        );
+        background-size: 200% 100%;
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shine 8s linear infinite;
+      }
+      @keyframes shine {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+      .ai-messages {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+        max-width: 700px;
+      }
+      .ai-message {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        animation: messageSlideIn 0.3s ease-out;
+        margin-bottom: 16px;
+      }
+      .ai-message.user {
+        align-items: flex-end;
+      }
+      .ai-message.assistant {
+        align-items: flex-start;
+      }
+      @keyframes messageSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .ai-message-text {
+        font-size: 15px;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.9);
+        word-wrap: break-word;
+        max-width: 85%;
+      }
+      .ai-message.user .ai-message-text {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        border-bottom-right-radius: 4px;
+        padding: 10px 16px;
+      }
+      .ai-message.assistant .ai-message-text {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        border-bottom-left-radius: 4px;
+        padding: 10px 16px;
+      }
+      .ai-message-actions {
+        display: flex;
+        gap: 4px;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .ai-message:hover .ai-message-actions {
+        opacity: 1;
+      }
+      .ai-message-action-btn {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: 0 0;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        border-radius: 4px;
+        transition:
+          color 0.15s,
+          background 0.15s;
+      }
+      .ai-message-action-btn:hover {
+        color: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .ai-message-action-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+      .ai-message-text pre {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 10px;
+        overflow-x: auto;
+        margin: 8px 0;
+        font-size: 13px;
+      }
+      .ai-message-text code {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        font-family: "Courier New", monospace;
+      }
+      .ai-message-text pre code {
+        background: 0 0;
+        padding: 0;
+      }
+      .ai-message-text p {
+        margin: 0 0 8px;
+      }
+      .ai-message-text p:last-child {
+        margin-bottom: 0;
+      }
+      .ai-message-text h1,
+      .ai-message-text h2,
+      .ai-message-text h3,
+      .ai-message-text h4,
+      .ai-message-text h5,
+      .ai-message-text h6 {
+        margin: 14px 0 8px;
+        line-height: 1.3;
+        font-weight: 600;
+      }
+      .ai-message-text h1 {
+        font-size: 1.4em;
+      }
+      .ai-message-text h2 {
+        font-size: 1.25em;
+      }
+      .ai-message-text h3 {
+        font-size: 1.1em;
+      }
+      .ai-message-text ol,
+      .ai-message-text ul {
+        margin: 0 0 8px;
+        padding-left: 22px;
+      }
+      .ai-message-text li {
+        margin: 3px 0;
+      }
+      .ai-message-text li > ol,
+      .ai-message-text li > ul {
+        margin: 3px 0;
+      }
+      .ai-message-text input[type="checkbox"] {
+        margin-right: 6px;
+      }
+      .ai-message-text a {
+        color: var(--accent-bright);
+        text-decoration: underline;
+        text-decoration-color: rgba(167, 139, 250, 0.4);
+      }
+      .ai-message-text a:hover {
+        text-decoration-color: currentColor;
+      }
+      .ai-message-text blockquote {
+        margin: 8px 0;
+        padding: 2px 12px;
+        border-left: 3px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .ai-message-text hr {
+        margin: 12px 0;
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .ai-message-text table {
+        width: 100%;
+        margin: 8px 0;
+        border-collapse: collapse;
+        font-size: 0.92em;
+      }
+      .ai-message-text td,
+      .ai-message-text th {
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        text-align: left;
+      }
+      .ai-message-text th {
+        background: rgba(255, 255, 255, 0.06);
+        font-weight: 600;
+      }
+      .ai-message-text .katex-display {
+        overflow-x: auto;
+        padding: 4px 0;
+      }
+      .ai-reasoning {
+        width: 100%;
+        max-width: 85%;
+        margin-bottom: 2px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .ai-reasoning-summary {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        list-style: none;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.45);
+        user-select: none;
+      }
+      .ai-reasoning-summary::-webkit-details-marker {
+        display: none;
+      }
+      .ai-reasoning-summary svg {
+        width: 13px;
+        height: 13px;
+        flex-shrink: 0;
+      }
+      .ai-reasoning-chevron {
+        margin-left: auto;
+        transition: transform 0.15s;
+      }
+      .ai-reasoning[open] .ai-reasoning-chevron {
+        transform: rotate(180deg);
+      }
+      .ai-reasoning-body {
+        padding: 0 12px 10px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.4);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 8px;
+        white-space: pre-wrap;
+      }
+      .ai-message-stats {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.3);
+        padding: 0 2px;
+        opacity: 0;
+        transition: opacity 0.15s;
+        font-variant-numeric: tabular-nums;
+      }
+      .ai-message:hover .ai-message-stats {
+        opacity: 1;
+      }
+      .ai-thinking-dots {
+        display: inline-flex;
+        gap: 3px;
+        padding: 10px 4px;
+        align-items: center;
+      }
+      .ai-blink-dots {
+        display: inline-flex;
+        gap: 3px;
+        padding: 10px 4px;
+        align-items: center;
+        animation: aiBlink 1.1s ease-in-out infinite;
+      }
+      @keyframes aiBlink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .ai-message-status {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.45);
+        padding: 8px 4px;
+      }
+      .ai-edit-textarea {
+        resize: none;
+        min-height: 60px;
+        font-family: inherit;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        padding: 10px 14px;
+        color: #fff;
+        width: 100%;
+      }
+      .ai-edit-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .ai-edit-cancel-btn {
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .ai-edit-save-btn {
+        padding: 6px 12px;
+        background: #8b7cf6;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .ai-message-media video {
+        max-width: 100%;
+        border-radius: 12px;
+        display: block;
+        margin-top: 8px;
+      }
+      .ai-message-media img {
+        max-width: 100%;
+        border-radius: 12px;
+        display: block;
+        margin-top: 8px;
+        cursor: zoom-in;
+      }
+      .ai-error-box {
+        padding: 16px;
+        background: rgba(255, 77, 77, 0.12);
+        border: 1px solid rgba(255, 77, 77, 0.3);
+        border-radius: 10px;
+        color: #ff6b6b;
+        text-align: center;
+        margin: 20px;
+      }
+      .ai-message-attach-img {
+        max-width: 220px;
+        max-height: 220px;
+        border-radius: 12px;
+        display: block;
+        margin-bottom: 8px;
+        object-fit: cover;
+      }
+      .ai-typing {
+        display: flex;
+        gap: 5px;
+        padding: 8px 0;
+      }
+      .ai-typing-dot {
+        width: 6px;
+        height: 6px;
+        background: #a78bfa;
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite ease-in-out;
+      }
+      .ai-typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .ai-typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes typingBounce {
+        0%,
+        100%,
+        60% {
+          transform: translateY(0);
+        }
+        30% {
+          transform: translateY(-6px);
+        }
+      }
+      .ai-input-container {
+        padding: 14px 20px 18px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .ai-input-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+      .ai-attach-preview {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        max-width: 700px;
+        width: 100%;
+        margin-bottom: 8px;
+      }
+      .ai-attach-preview.show {
+        display: flex;
+      }
+      .ai-attach-chip {
+        position: relative;
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+      }
+      .ai-attach-chip img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .ai-attach-remove {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #1a1a22;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        font-size: 12px;
+        line-height: 1;
+        opacity: 0;
+        transition:
+          opacity 0.15s,
+          background 0.15s;
+      }
+      .ai-attach-chip:hover .ai-attach-remove {
+        opacity: 1;
+      }
+      .ai-attach-remove:hover {
+        background: #2a2a35;
+      }
+      .ai-attach-name {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.45);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ai-input-icon.active {
+        color: #a78bfa;
+      }
+      .ai-message-user-media {
+        max-width: 220px;
+        border-radius: 12px;
+        display: block;
+        margin-bottom: 6px;
+      }
+      .ai-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 26px;
+        padding: 10px 14px;
+        transition:
+          border-color 0.15s,
+          max-height 0.2s;
+        max-width: 700px;
+        width: 100%;
+        max-height: 200px;
+      }
+      .ai-input-wrapper:focus-within {
+        border-color: rgba(139, 124, 246, 0.4);
+      }
+      .ai-input-icon {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: 0 0;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        flex-shrink: 0;
+        padding: 0;
+        transition: color 0.15s;
+      }
+      .ai-input-icon:hover {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .ai-input-icon svg {
+        width: 16px;
+        height: 16px;
+      }
+      .ai-input-wrapper textarea {
+        flex: 1;
+        background: 0 0;
+        border: none;
+        outline: 0;
+        font-family: inherit;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
+        resize: none;
+        line-height: 1.5;
+        padding: 0;
+        min-width: 0;
+        max-height: 120px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+      }
+      .ai-input-wrapper textarea::-webkit-scrollbar {
+        width: 3px;
+      }
+      .ai-input-wrapper textarea::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 2px;
+      }
+      .ai-input-wrapper textarea::placeholder {
+        color: rgba(255, 255, 255, 0.35);
+      }
+      .ai-model-wrap {
+        position: relative;
+        flex-shrink: 0;
+      }
+      .ai-model-trigger {
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 14px;
+        background: rgba(139, 124, 246, 0.14);
+        border: 1px solid rgba(139, 124, 246, 0.3);
+        border-radius: 9px;
+        color: #c4b5fd;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s;
+        outline: 0;
+        white-space: nowrap;
+      }
+      .ai-model-trigger-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 220px;
+      }
+      .ai-model-trigger svg {
+        width: 11px;
+        height: 11px;
+        flex-shrink: 0;
+        transition: transform 0.18s;
+      }
+      .ai-model-trigger:hover {
+        background: rgba(139, 124, 246, 0.22);
+        border-color: rgba(139, 124, 246, 0.45);
+        color: #ddd6fe;
+      }
+      .ai-model-wrap.open .ai-model-trigger {
+        background: rgba(139, 124, 246, 0.22);
+        border-color: var(--accent-bright);
+        color: #ddd6fe;
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+      .ai-model-wrap.open .ai-model-trigger svg {
+        transform: rotate(180deg);
+      }
+      .ai-model-popup {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        right: 0;
+        min-width: 160px;
+        max-width: 260px;
+        max-height: 280px;
+        overflow-y: auto;
+        background: rgba(14, 13, 22, 0.98);
+        border: 1px solid rgba(139, 124, 246, 0.3);
+        border-radius: 10px;
+        padding: 6px;
+        z-index: 20;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(139, 124, 246, 0.4) transparent;
+      }
+      .ai-model-popup::-webkit-scrollbar {
+        width: 5px;
+      }
+      .ai-model-popup::-webkit-scrollbar-track {
+        background: 0 0;
+      }
+      .ai-model-popup::-webkit-scrollbar-thumb {
+        background: rgba(139, 124, 246, 0.4);
+        border-radius: 10px;
+      }
+      .ai-model-popup::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 124, 246, 0.6);
+      }
+      .ai-model-wrap.open .ai-model-popup {
+        display: block;
+      }
+      .ai-model-group-label {
+        padding: 7px 10px 4px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+      .ai-model-item {
+        padding: 8px 10px;
+        border-radius: 9px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.75);
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition:
+          background 0.1s,
+          color 0.1s;
+      }
+      .ai-model-item:hover {
+        background: rgba(139, 124, 246, 0.16);
+        color: #fff;
+      }
+      .ai-model-item.selected {
+        background: rgba(139, 124, 246, 0.22);
+        color: #ddd6fe;
+      }
+      @media (max-width: 480px) {
+        .ai-model-trigger {
+          height: 32px;
+          padding: 0 11px;
+          font-size: 12px;
+        }
+        .ai-model-trigger-label {
+          max-width: 130px;
+        }
+      }
+      .ai-send-btn {
+        width: 30px;
+        height: 30px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #8b7cf6;
+        border: none;
+        border-radius: 50%;
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .ai-send-btn:hover {
+        background: #a78bfa;
+      }
+      .ai-send-btn svg {
+        width: 15px;
+        height: 15px;
+      }
+      @media (max-width: 768px) {
+        .ai-sidebar {
+          display: none;
+        }
+        .ai-chat-container {
+          padding: 20px 16px;
+        }
+        .ai-input-container {
+          padding: 12px 16px 16px;
+        }
+      }
+    </style>
+    <style>
+      .cm-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999999;
+        background: rgba(0, 0, 0, 0.95);
+        overflow-y: auto;
+      }
+      .cm-modal.open {
+        display: block;
+      }
+      .cm-modal-center {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .cm-modal-card {
+        background: #101010;
+        border: 1px solid #1f1f1f;
+        border-radius: 14px;
+        max-width: 760px;
+        width: 100%;
+        color: #fff;
+        font-family: var(--font, "Inter", sans-serif);
+      }
+      .cm-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 22px;
+        border-bottom: 1px solid #1f1f1f;
+      }
+      .cm-modal-title {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .cm-modal-close {
+        background: 0 0;
+        border: none;
+        color: #8b8b8b;
+        font-size: 22px;
+        cursor: pointer;
+        padding: 0;
+        width: 28px;
+        height: 28px;
+        line-height: 1;
+        transition: color 0.15s;
+      }
+      .cm-modal-close:hover {
+        color: #fff;
+      }
+      .cm-modal-body {
+        padding: 22px;
+      }
+      .cm-section-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #5a5a5a;
+        margin: 0 0 8px;
+        font-weight: 600;
+      }
+      .cm-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 6px;
+        margin-bottom: 20px;
+      }
+      .button-map,
+      .cm-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: #0a0a0a;
+        border: 1px solid #1f1f1f;
+        border-radius: 8px;
+        padding: 9px 12px;
+        font-size: 13px;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .button-map {
+        cursor: pointer;
+      }
+      .cm-name {
+        color: #8b8b8b;
+        font-weight: 500;
+      }
+      .key-display {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 5px;
+        background: #141414;
+        color: #8b8b8b;
+        white-space: nowrap;
+      }
+      .button-map.mapped {
+        border-color: #1f3d24;
+        background: #0b130d;
+      }
+      .button-map.mapped .cm-name {
+        color: #cfcfcf;
+      }
+      .button-map.mapped .key-display {
+        background: rgba(74, 157, 95, 0.12);
+        color: #4a9d5f;
+      }
+      .button-map.unmapped {
+        border-color: #3d1f1f;
+        background: #130b0b;
+      }
+      .button-map.unmapped .key-display {
+        background: rgba(157, 74, 74, 0.12);
+        color: #9d4a4a;
+      }
+      .button-map:hover {
+        border-color: #2f2f2f;
+        background: #121212;
+      }
+      .button-map.mapped:hover {
+        border-color: #2c5733;
+      }
+      .button-map.unmapped:hover {
+        border-color: #5a2d2d;
+      }
+      .button-map.remapping {
+        border-color: #6d5cd6 !important;
+        background: rgba(139, 124, 246, 0.08) !important;
+        animation: pulse-remap 1s infinite;
+      }
+      .button-map.remapping .key-display {
+        background: rgba(139, 124, 246, 0.16) !important;
+        color: #a78bfa !important;
+        letter-spacing: 0.12em;
+      }
+      @keyframes pulse-remap {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.55;
+        }
+      }
+      .cm-name {
+        margin-right: auto;
+      }
+      .cm-trash {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        margin-left: -6px;
+        padding: 0;
+        background: 0 0;
+        border: none;
+        border-radius: 4px;
+        color: #9d4a4a;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition:
+          color 0.15s,
+          background 0.15s;
+      }
+      .button-map.remapping .cm-trash {
+        display: inline-flex;
+      }
+      .cm-trash:hover {
+        color: #c96a6a;
+        background: rgba(157, 74, 74, 0.12);
+      }
+      .cm-trash svg {
+        width: 14px;
+        height: 14px;
+        display: block;
+      }
+      .stick-toggle {
+        padding: 4px 12px;
+        background: #141414;
+        border: 1px solid #2a2a2a;
+        border-radius: 5px;
+        color: #cfcfcf;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 11px;
+        letter-spacing: 0.03em;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .stick-toggle:hover {
+        border-color: #2c5733;
+        color: #4a9d5f;
+      }
+      .cm-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        border-top: 1px solid #1f1f1f;
+        padding-top: 16px;
+      }
+      .cm-hint {
+        margin: 0;
+        color: #5a5a5a;
+        font-size: 12px;
+      }
+      .cm-reset {
+        padding: 8px 16px;
+        background: #141414;
+        border: 1px solid #2a2a2a;
+        border-radius: 7px;
+        color: #8b8b8b;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 12px;
+        white-space: nowrap;
+        transition:
+          border-color 0.15s,
+          color 0.15s,
+          background 0.15s;
+      }
+      .cm-reset:hover {
+        border-color: #5a2d2d;
+        background: #130b0b;
+        color: #9d4a4a;
+      }
+      @media (max-width: 560px) {
+        .cm-grid {
+          grid-template-columns: 1fr;
+        }
+        .cm-footer {
+          flex-direction: column-reverse;
+          align-items: stretch;
+        }
+        .cm-reset {
+          width: 100%;
+        }
+        .cm-hint {
+          text-align: center;
+        }
+      }
+    </style>
+    <!-- Shared interface system. Keep these overrides after the recovered styles. -->
+    <style id="interface-system">
+      :root, :host {
+        --accent: #9cdbbd;
+        --accent-bright: #c3f1d9;
+        --accent-dim: #466b5c;
+        --accent-glow: #9cdbbd18;
+        --ui-bg: #101413;
+        --ui-surface: #191e1c;
+        --ui-raised: #222925;
+        --ui-line: #ffffff12;
+        --ui-text: #edf0e9;
+        --ui-muted: #929d96;
+        --ui-rail: 216px;
+      }
+      body, :host > div {
+        background: var(--ui-bg) !important;
+        color: var(--ui-text) !important;
+        font-family: Inter, system-ui, sans-serif !important;
+      }
+      button, input, select, textarea { font: inherit; }
+      button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+      button:focus-visible, a:focus-visible, input:focus-visible,
+      select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+        outline: 2px solid var(--accent); outline-offset: 4px;
+      }
+      button { touch-action: manipulation; }
+      ::selection { background: #9cdbbd40; color: #fff; }
+      canvas#stars { opacity: .28; }
+      .app-header {
+        position: fixed; top: 0; left: var(--ui-rail); right: 0; z-index: 3;
+        height: 88px; display: flex; justify-content: space-between; align-items: center;
+        padding: 0 44px; color: var(--ui-muted); font-size: 12px;
+      }
+      .header-label { letter-spacing: .14em; text-transform: uppercase; font-size: 10px; }
+      .header-note { display: flex; align-items: center; gap: 9px; }
+      .header-note::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+      .content {
+        width: min(860px, calc(100% - var(--ui-rail) - 88px));
+        margin-left: var(--ui-rail); padding: 96px 0 50px; align-items: flex-start;
+        max-height: 100dvh; overflow-y: auto; scrollbar-width: thin;
+      }
+      .home-eyebrow { display: flex; align-items: center; gap: 10px; color: var(--accent);
+        font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .2em; margin-bottom: 20px; }
+      .home-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--accent); }
+      .wordmark { font: 500 clamp(48px, 6.2vw, 84px)/1.04 Inter, sans-serif;
+        letter-spacing: -.065em; color: var(--ui-text); background: none; margin: 0 0 20px; }
+      .wordmark em { font-family: 'Playfair Display', Georgia, serif; font-weight: 400; color: var(--accent); }
+      .tagline { color: var(--ui-muted); font: 400 14px/1.7 Inter, sans-serif;
+        margin-bottom: 34px; letter-spacing: 0; user-select: text; }
+      .search-wrap, .search-wrap.expanded { width: 100%; }
+      .search-bar { border-radius: 16px; padding: 0 22px; gap: 14px;
+        background: var(--ui-surface); border: 1px solid #ffffff1a; box-shadow: 0 12px 32px #00000018; }
+      .search-bar input { min-width: 0; padding: 22px 0; font-size: 15px; font-weight: 400; color: var(--ui-text); }
+      .search-bar input::placeholder { color: #87938b; }
+      .search-bar input:focus-visible { outline: none; }
+      .search-bar:focus-within { border-color: var(--accent-dim); box-shadow: 0 0 0 4px var(--accent-glow); }
+      .search-bar svg { width: 19px; height: 19px; stroke: var(--accent); }
+      .search-wrap.expanded .search-bar { border-color: var(--accent-dim); background: #1c2420;
+        border-radius: 16px; box-shadow: 0 0 0 4px var(--accent-glow); }
+      .search-wrap.expanded.has-ac .search-bar { border-radius: 16px 16px 0 0; }
+      .autocomplete { background: #1c2420; border-color: var(--accent-dim); border-radius: 0 0 16px 16px; }
+      .ac-item { padding: 13px 22px; font-size: 14px; }
+      .ac-item.selected, .ac-item:hover { background: #9cdbbd12; }
+      .section-caption { width: 100%; display: flex; justify-content: space-between; align-items: center;
+        margin-top: 34px; color: var(--ui-muted); font-size: 11px; }
+      .section-caption span:first-child { color: #cdd5ce; font-weight: 500; }
+      .shortcuts { --sc-cols: 5; --sc-gap: 10px; --sc-icon: 30px; --sc-font: 11px;
+        --sc-pad-t: 20px; --sc-pad-b: 13px; --sc-stack: 12px; width: 100%; margin-top: 14px; }
+      .shortcut { background: #ffffff03; border-color: var(--ui-line); border-radius: 13px; box-shadow: none; }
+      .shortcut:hover { background: var(--ui-surface); border-color: #9cdbbd40; transform: translateY(-3px); }
+      .shortcut-icon { border-radius: 8px; }
+      .shortcut span { color: #bac5bd; font-weight: 400; }
+      .shortcut-delete { background: var(--ui-bg); }
+      .home-footnote { margin-top: 26px; color: #66746b; font-size: 11px; letter-spacing: .02em; }
+      .bottom-nav { top: 0; bottom: 0; right: auto; width: var(--ui-rail); padding: 30px 16px 20px;
+        flex-direction: column; justify-content: flex-start; border-top: 0; border-right: 1px solid var(--ui-line);
+        background: #131815; backdrop-filter: blur(20px); }
+      .rail-brand { color: var(--ui-text); font-size: 25px; font-weight: 600; letter-spacing: -.06em;
+        padding: 0 14px 40px; display: flex; align-items: center; gap: 5px; }
+      .rail-brand span { color: var(--accent); }
+      .rail-caption { font-size: 9px; text-transform: uppercase; letter-spacing: .16em;
+        color: #67766c; padding: 0 14px 14px; }
+      .nav-buttons { flex-direction: column; align-items: stretch; gap: 6px; }
+      .nav-item { flex-direction: row; gap: 13px; text-transform: none; letter-spacing: 0;
+        font-size: 13px; font-weight: 400; padding: 14px; border-radius: 10px; color: var(--ui-muted); }
+      .nav-item svg { width: 18px; height: 18px; stroke-width: 1.6; }
+      .nav-item::before { display: none; }
+      .nav-item:hover { background: #ffffff05; color: var(--ui-text); }
+      .nav-item.active { background: #9cdbbd10; color: var(--accent); }
+      .nav-stats { order: 10; margin-top: auto; padding: 18px 14px 0; gap: 7px; border-top: 1px solid var(--ui-line); }
+      .nav-stat { font-size: 9px; color: #6f8074; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+      .games-screen, .effects-screen, .ai-screen { left: var(--ui-rail); background: var(--ui-bg); }
+      .screen-header { padding: 24px 30px; min-height: 88px; gap: 26px; border-color: var(--ui-line); }
+      .screen-header-title { font: 600 22px/1.2 Inter, sans-serif; letter-spacing: -.05em; }
+      .screen-header-sub { color: var(--accent); font-size: 9px; letter-spacing: .14em; margin-top: 3px; }
+      .screen-minimize-btn { border: 1px solid var(--ui-line); border-radius: 10px; padding: 10px; min-width: 40px; }
+      .games-search-bar, .effects-search-bar { background: var(--ui-surface); border-color: var(--ui-line);
+        border-radius: 12px; max-width: 640px; margin-left: auto; }
+      .games-search-input, .effects-search-input { min-width: 0; padding: 13px 0; font-size: 13px; font-weight: 400; }
+      .games-grid, .effects-grid { padding-left: 30px; padding-right: 30px; gap: 16px; }
+      .games-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+      .game-card, .effect-btn { background: var(--ui-surface); border: 1px solid var(--ui-line);
+        border-radius: 14px; box-shadow: none; }
+      .game-card:hover, .effect-btn:hover { border-color: #9cdbbd55; background: #212c25; box-shadow: 0 8px 24px #0002; }
+      .game-card-name { color: #d5ddd6; font-weight: 500; font-size: 12px; }
+      .game-card-img { border-bottom: 1px solid var(--ui-line); }
+      .effect-btn { color: var(--accent); }
+      .effect-btn.playing { background: #9cdbbd18; border-color: var(--accent); }
+      .effects-footer { padding: 22px 30px; background: #131815; border-color: var(--ui-line); }
+      .settings-screen { background: #080d09b3; backdrop-filter: blur(14px); }
+      .settings-inner { width: min(880px, 94vw); height: min(660px, 88dvh); background: var(--ui-bg);
+        border: 1px solid #ffffff1a; border-radius: 20px; box-shadow: 0 40px 120px #0006; }
+      .settings-inner .screen-header { padding: 22px 20px; }
+      .settings-inner .screen-header-left { padding-left: 8px; width: auto; }
+      .settings-sidebar { width: 200px; padding: 16px 10px; background: #131815; border-color: var(--ui-line); }
+      .sidebar-item { margin: 4px 0; border: none; border-radius: 9px; padding: 12px 14px; font-size: 12px; letter-spacing: 0; }
+      .sidebar-item.active, .tab-item.active { background: #9cdbbd12; color: var(--accent); border-color: #9cdbbd40; }
+      .settings-panel-section { padding: 26px 30px; border-color: var(--ui-line); }
+      .category-label { font-size: 10px; letter-spacing: .14em; color: var(--accent); margin-bottom: 16px; }
+      .setting-label { font-size: 13px; font-weight: 400; color: #cbd5cc; }
+      .setting-row { padding: 16px 0; gap: 20px; border-color: #ffffff08; }
+      .setting-input, .setting-select { background: var(--ui-surface); border-color: #ffffff18; font-size: 12px;
+        padding: 11px 13px; border-radius: 9px; color: var(--ui-text); }
+      .setting-select option { background: var(--ui-surface); color: var(--ui-text); }
+      .setting-action-btn { background: #9cdbbd10; color: var(--accent); border-color: #9cdbbd30;
+        font-weight: 500; font-size: 12px; padding: 10px 14px; border-radius: 9px; }
+      .toggle.on::after, .cloud-toggle.on::after { background: #14261c; }
+      .panel, .game-player { background: var(--ui-bg); }
+      .panel-bar-wrap, .game-player-bar-wrap { background: #151b17; padding: 12px 18px; border-color: var(--ui-line); }
+      .addr-wrap, .game-player-id { background: #ffffff05; border-color: #ffffff0d; border-radius: 10px; padding: 0 16px; }
+      .addr-input, .game-player-id-text { padding: 11px 0; font-size: 13px; }
+      .nb { padding: 10px; border-radius: 8px; color: #98a79c; }
+      .nb:hover { background: #ffffff08; color: var(--accent); }
+      .ai-sidebar { width: 230px; background: #131815; border-color: var(--ui-line); }
+      .ai-sidebar-header { padding: 28px 22px; border-color: var(--ui-line); }
+      .ai-sidebar-actions { padding: 16px 12px; border-color: var(--ui-line); }
+      .ai-sidebar-btn { border-radius: 9px; padding: 12px; font-size: 12px; }
+      .ai-recents-list { gap: 4px; }
+      .ai-recent-item { font-size: 12px; border-radius: 9px; }
+      .ai-recent-item.active { background: #9cdbbd12; color: var(--accent); }
+      .ai-chat-container { padding: 70px 28px 28px; }
+      .ai-welcome-title { font-size: clamp(30px, 3.5vw, 48px); letter-spacing: -.05em; }
+      .ai-shine { background: none; -webkit-text-fill-color: var(--ui-text); color: var(--ui-text); animation: none; }
+      .ai-input-container { padding: 20px 26px 28px; }
+      .ai-input-wrapper { border-radius: 16px; background: var(--ui-surface); border-color: #ffffff18; padding: 16px 18px; }
+      .ai-input-wrapper:focus-within { border-color: var(--accent-dim); box-shadow: 0 0 0 3px var(--accent-glow); }
+      .ai-input-icon.active { color: var(--accent); }
+      .ai-model-trigger { background: #9cdbbd0c; border-color: #9cdbbd25; color: var(--accent); font-size: 11px; }
+      .ai-model-trigger:hover, .ai-model-wrap.open .ai-model-trigger { background: #9cdbbd18; color: var(--accent-bright); border-color: var(--accent-dim); }
+      .ai-model-popup { background: var(--ui-surface); border-color: var(--accent-dim); }
+      .ai-model-item:hover, .ai-model-item.selected { background: #9cdbbd15; color: var(--accent); }
+      .ai-send-btn, .ai-edit-save-btn { background: var(--accent); color: #14261c; }
+      .ai-send-btn:hover { background: var(--accent-bright); }
+      .ai-message.user .ai-message-text { background: #283a2f; }
+      .ai-message.assistant .ai-message-text { background: var(--ui-surface); border-color: var(--ui-line); }
+      .ai-typing-dot { background: var(--accent); }
+      .ext-prompt { background: #18201bf5; border-color: #ffffff18; border-radius: 16px; }
+      .cm-modal { background: #080d09e8; backdrop-filter: blur(12px); }
+      .cm-modal-card { background: var(--ui-bg); border-color: #ffffff18; border-radius: 20px; }
+      .cm-modal-header, .cm-footer { border-color: var(--ui-line); }
+      .button-map, .cm-row { background: var(--ui-surface); border-color: var(--ui-line); border-radius: 9px; }
+      .button-map.remapping { border-color: var(--accent) !important; background: #9cdbbd10 !important; }
+      .button-map.remapping .key-display { color: var(--accent) !important; background: #9cdbbd15 !important; }
+      @media (min-width: 1600px) { .content { width: 900px; } }
+      @media (max-width: 1100px) {
+        :root, :host { --ui-rail: 176px; }
+        .app-header { padding: 0 30px; }
+        .content { width: calc(100% - var(--ui-rail) - 60px); }
+        .ai-sidebar { width: 190px; }
+        .screen-header { gap: 16px; padding: 20px; }
+        .games-grid, .effects-grid { padding-left: 20px; padding-right: 20px; }
+      }
+      @media (max-width: 760px) {
+        :root, :host { --ui-rail: 0px; }
+        .app-header { height: 68px; padding: 0 24px; }
+        .header-label { color: var(--ui-text); font-size: 16px; text-transform: none; font-weight: 600; letter-spacing: -.05em; }
+        .header-note { font-size: 10px; }
+        .content { width: calc(100% - 40px); margin: 0; padding: 90px 0 120px; }
+        .wordmark { font-size: clamp(42px, 8vw, 64px); }
+        .tagline { font-size: 13px; margin-bottom: 26px; }
+        .home-eyebrow { font-size: 9px; margin-bottom: 16px; }
+        .search-bar { padding: 0 16px; }
+        .search-bar input { padding: 19px 0; font-size: 13px; }
+        .shortcuts { --sc-cols: 4; --sc-gap: 8px; --sc-icon: 26px; --sc-font: 10px; --sc-pad-t: 15px; --sc-pad-b: 9px; --sc-stack: 9px; }
+        .section-caption { margin-top: 26px; }
+        .home-footnote { font-size: 10px; }
+        .bottom-nav { top: auto; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: auto;
+          padding: 6px; border: 1px solid #ffffff18; border-radius: 18px; flex-direction: row; background: #18201bf5;
+          box-shadow: 0 10px 40px #0005; }
+        .rail-brand, .rail-caption, .nav-stats { display: none; }
+        .nav-buttons { flex-direction: row; width: 100%; gap: 3px; }
+        .nav-item { flex: 1; flex-direction: column; gap: 5px; padding: 10px 4px; border-radius: 12px; font-size: 9px; }
+        .nav-item svg { width: 18px; height: 18px; }
+        .games-screen, .effects-screen, .ai-screen { bottom: 90px; border-radius: 0 0 20px 20px; }
+        .screen-header { min-height: 76px; padding: 16px; gap: 12px; }
+        .screen-header-title { font-size: 20px; }
+        .screen-header-sub { font-size: 8px; }
+        .games-search-bar, .effects-search-bar { padding: 0 10px; }
+        .games-search-input, .effects-search-input { font-size: 12px; }
+        .games-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .games-grid, .effects-grid { padding-left: 16px; padding-right: 16px; }
+        .effects-footer { padding: 18px; }
+        .ai-sidebar { display: none; }
+        .ai-chat-container { padding: 60px 16px 20px; }
+        .ai-input-container { padding: 12px 14px 18px; }
+        .ai-input-wrapper { gap: 8px; padding: 12px; }
+        .ai-model-trigger-label { max-width: 95px; }
+        .settings-inner { width: 100%; height: 90dvh; border-radius: 22px 22px 0 0; }
+        .settings-screen { align-items: flex-end; }
+        .settings-sidebar { display: none; }
+        .settings-tabs { display: flex; border-color: var(--ui-line); padding: 12px 16px; }
+        .settings-body { flex-direction: column; }
+        .settings-panel-section { padding: 20px; }
+        .settings-spacer { display: none; }
+        .panel-bar-wrap, .game-player-bar-wrap { padding: 8px; }
+        .nb { padding: 8px; }
+        .addr-wrap { padding: 0 8px; }
+        .shortcut-delete { opacity: 1; }
+      }
+      @media (max-width: 380px) {
+        .shortcuts { --sc-cols: 3; }
+        .header-note { display: none; }
+        .screen-header { gap: 8px; }
+        .games-screen .screen-header-left, .effects-screen .screen-header-left { display: none; }
+      }
+      @media (max-height: 720px) and (min-width: 761px) {
+        .content { padding-top: 90px; padding-bottom: 24px; }
+        .wordmark { font-size: 56px; }
+        .home-eyebrow { margin-bottom: 12px; }
+        .tagline { margin-bottom: 22px; }
+        .shortcuts { --sc-pad-t: 12px; --sc-stack: 7px; }
+        .section-caption { margin-top: 22px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+        canvas#stars { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="stars"></canvas>
+    <header class="app-header">
+      <span class="header-label">lucianland / home</span>
+      <span class="header-note">Make yourself at home</span>
+    </header>
+    <div class="content">
+      <div class="home-eyebrow">A space of your own</div>
+      <h1 class="wordmark">Go somewhere<br /><em>different.</em></h1>
+      <div class="tagline" id="tagline"></div>
+      <div class="search-wrap" id="searchWrap">
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input
+            id="searchInput"
+            placeholder="S͎e͎a͎r͎c͎h͎ ͎o͎r͎ ͎e͎n͎t͎e͎r͎ ͎a͎d͎d͎r͎e͎s͎s͎"
+            autocomplete="off"
+          />
+        </div>
+        <div class="autocomplete" id="autocomplete"></div>
+      </div>
+      <div class="section-caption"><span>Your launchpad</span><span>A few favorites, one click away</span></div>
+      <div class="shortcuts" id="shortcuts"></div>
+      <p class="home-footnote">Browse a little. Play a while. Find something new.</p>
+    </div>
+    <div class="panel" id="panel">
+      <div class="panel-bar-wrap">
+        <div class="panel-bar">
+          <div class="nav-btn-group">
+            <div class="home-btn-wrap" id="homeBtnWrap">
+              <button class="nb home-btn" onclick="handleHome()" id="homeBtn">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"
+                  ></path>
+                  <path d="M9 21V12h6v9"></path>
+                </svg>
+              </button>
+              <span class="home-confirm-hint">close?</span>
+              <div class="home-countdown" id="homeCountdown"></div>
+            </div>
+            <button class="nb" onclick="goBack()">
+              <svg viewBox="0 0 24 24">
+                <path d="m12 19-7-7 7-7"></path>
+                <path d="M19 12H5"></path>
+              </svg>
+            </button>
+            <button class="nb" onclick="goForward()">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </button>
+            <button class="nb" onclick="reload()" id="reloadBtn">
+              <svg viewBox="0 0 24 24" class="reload-icon">
+                <path
+                  d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"
+                ></path>
+                <path d="M21 3v5h-5"></path></svg
+              ><span class="reload-spinner-wrap"
+                ><span class="reload-spinner-ring"></span
+              ></span>
+            </button>
+          </div>
+          <div class="addr-wrap">
+            <svg viewBox="0 0 24 24" id="lockIcon" class="lock-icon">
+              <rect height="11" rx="2" width="18" x="3" y="11"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span class="addr-sep">|</span>
+            <input
+              id="addrInput"
+              class="addr-input"
+              placeholder="S͎e͎a͎r͎c͎h͎ ͎o͎r͎ ͎e͎n͎t͎e͎r͎ ͎a͎d͎d͎r͎e͎s͎s͎"
+            />
+          </div>
+          <button
+            class="nb"
+            onclick="toggleBookmark()"
+            id="bookmarkBtn"
+            title="Bookmark this page"
+          >
+            <svg viewBox="0 0 16 16" id="bookmarkIcon">
+              <path
+                d="M7.84 4.1a.178.178 0 0 1 .32 0l.634 1.285a.18.18 0 0 0 .134.098l1.42.206c.145.021.204.2.098.303L9.42 6.993a.18.18 0 0 0-.051.158l.242 1.414a.178.178 0 0 1-.258.187l-1.27-.668a.18.18 0 0 0-.165 0l-1.27.668a.178.178 0 0 1-.257-.187l.242-1.414a.18.18 0 0 0-.05-.158l-1.03-1.001a.178.178 0 0 1 .098-.303l1.42-.206a.18.18 0 0 0 .134-.098z"
+              ></path>
+              <path
+                d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"
+              ></path>
+            </svg>
+          </button>
+          <button class="nb" onclick="toggleFullscreen()">
+            <svg viewBox="0 0 24 24" id="fsIcon">
+              <path
+                d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <iframe id="frame" src="about:blank"></iframe>
+    </div>
+    <div
+      class="settings-screen"
+      id="settingsScreen"
+      onclick="event.target===event.currentTarget&amp;&amp;toggleSettings()"
+    >
+      <div class="settings-inner">
+        <div class="screen-header">
+          <div
+            class="screen-header-left"
+            onclick="toggleSettings()"
+            style="cursor: default"
+          >
+            <span class="screen-header-title">lucianland</span>
+            <span class="screen-header-sub">settings</span>
+          </div>
+          <button
+            class="screen-minimize-btn"
+            onclick="toggleSettings()"
+            style="margin-left: auto"
+          >
+            <svg viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+        <div class="settings-body">
+          <div class="settings-sidebar" id="settingsSidebar"></div>
+          <div class="settings-tabs" id="settingsTabs"></div>
+          <div class="settings-panels" id="settingsPanels"></div>
+        </div>
+      </div>
+    </div>
+    <div class="game-player" id="gamePlayer">
+      <div class="game-player-bar-wrap">
+        <div class="game-player-bar">
+          <div class="game-player-close-wrap" id="gamePlayerCloseWrap">
+            <button
+              class="game-player-close"
+              onclick="handleGamePlayerClose()"
+              id="gamePlayerClose"
+            >
+              <svg viewBox="0 0 24 24">
+                <line x1="18" x2="6" y1="6" y2="18"></line>
+                <line x1="6" x2="18" y1="6" y2="18"></line>
+              </svg>
+            </button>
+            <span class="game-close-confirm-hint">close?</span>
+            <div class="game-close-countdown" id="gameCloseCountdown"></div>
+          </div>
+          <div class="game-player-id">
+            <svg viewBox="0 0 24 24" class="lock-icon secure">
+              <rect height="11" rx="2" width="18" x="3" y="11"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span class="addr-sep">|</span>
+            <span class="game-player-id-text" id="gamePlayerId"></span>
+            <span class="game-player-time-left" id="gamePlayerTimeLeft"></span>
+          </div>
+          <button
+            class="nb hidden"
+            onclick="toggleControllerMapper()"
+            id="gamePlayerController"
+          >
+            <svg viewBox="0 0 512 512" fill="currentColor" style="fill: white">
+              <path
+                d="M511.27,331.566L511.27,331.566c0-0.009,0-0.018,0-0.026c-0.008-0.052,0-0.087-0.008-0.14h-0.009
+                            c-6.682-88.65-27.159-154.403-55.948-198.846c-14.412-22.221-30.968-39.115-49.041-50.507
+                            c-18.048-11.401-37.649-17.198-57.388-17.18c-14.551-0.009-26.985,2.629-37.527,6.611c-15.836,5.97-27.358,14.795-36.364,21.319
+                            c-4.495,3.28-8.373,5.961-11.549,7.592c-3.211,1.658-5.475,2.239-7.436,2.239c-1.328-0.009-2.725-0.251-4.521-0.92
+                            c-3.115-1.137-7.288-3.732-12.278-7.332c-7.531-5.354-16.885-12.764-29.223-18.846c-12.339-6.092-27.766-10.69-46.855-10.664
+                            c-19.739-0.018-39.34,5.787-57.388,17.18c-27.115,17.119-50.794,46.481-69.008,87.887C18.542,211.332,5.743,264.92,0.746,331.401
+                            H0.738c-0.009,0.052,0,0.096-0.009,0.14c0,0.008,0,0.017,0,0.026l0,0C0.243,336.981,0,342.247,0,347.358
+                            c-0.009,25.058,5.77,46.455,16.651,63.141c10.846,16.694,26.863,28.347,45.614,33.822c6.43,1.892,13.068,2.811,19.757,2.811
+                            c19.445-0.026,39.046-7.618,57.692-20.764c18.681-13.189,36.598-32.052,52.91-55.731c7.845-11.427,18.5-24.798,29.987-34.854
+                            c5.736-5.032,11.662-9.214,17.362-12.026c5.71-2.82,11.09-4.244,16.027-4.235c4.936-0.009,10.317,1.414,16.026,4.235
+                            c8.555,4.199,17.588,11.558,25.787,20.112c8.226,8.538,15.67,18.196,21.562,26.76c16.312,23.688,34.23,42.55,52.902,55.739
+                            c18.655,13.146,38.255,20.738,57.7,20.764c6.69,0,13.328-0.92,19.749-2.811c18.759-5.475,34.776-17.128,45.614-33.822
+                            C506.221,393.813,512,372.416,512,347.358C512,342.256,511.757,336.981,511.27,331.566z M476.737,398.36
+                            c-8.104,12.356-19.236,20.469-33.284,24.651c-4.33,1.275-8.807,1.9-13.475,1.908c-13.484,0.026-28.902-5.414-44.894-16.703
+                            c-15.974-11.254-32.312-28.225-47.418-50.177c-8.564-12.417-20.044-27.012-33.64-38.95c-6.812-5.97-14.169-11.297-22.16-15.245
+                            c-7.975-3.94-16.677-6.534-25.866-6.534c-9.189,0-17.892,2.594-25.866,6.534c-11.974,5.943-22.577,14.906-31.957,24.616
+                            c-9.353,9.726-17.432,20.268-23.843,29.579c-15.106,21.952-31.454,38.923-47.419,50.177
+                            c-15.991,11.288-31.418,16.729-44.894,16.703c-4.677-0.009-9.145-0.633-13.484-1.908c-14.04-4.182-25.172-12.295-33.284-24.651
+                            c-8.06-12.364-13.04-29.293-13.04-51.002c0-4.451,0.208-9.111,0.65-13.961v-0.052l0.009-0.113
+                            c6.429-86.17,26.446-148.582,52.451-188.59c12.989-20.026,27.41-34.447,42.256-43.801c14.872-9.353,30.126-13.744,45.544-13.761
+                            c11.896,0.009,21.424,2.091,29.675,5.189c12.356,4.65,21.883,11.756,31.158,18.507c4.652,3.367,9.233,6.655,14.378,9.336
+                            c5.111,2.655,11.028,4.729,17.666,4.729c4.399,0,8.556-0.928,12.286-2.325c6.56-2.482,12-6.213,17.422-10.065
+                            c8.113-5.831,16.208-12.14,26.091-16.981c9.883-4.833,21.449-8.364,37.076-8.39c15.418,0.017,30.672,4.408,45.545,13.761
+                            c22.264,14.005,43.6,39.532,60.511,78.03c16.92,38.464,29.354,89.735,34.195,154.36v0.052l0.009,0.113
+                            c0.434,4.842,0.652,9.502,0.652,13.961C489.778,369.067,484.806,386.004,476.737,398.36z"
+              ></path>
+              <polygon
+                points="161.232,178.126 122.29,178.126 122.29,213.631 86.785,213.631 86.785,252.573 122.29,252.573
+                            122.29,288.079 161.232,288.079 161.232,252.573 196.737,252.573 196.737,213.631 161.232,213.631"
+              ></polygon>
+              <path
+                d="M368.659,167.002c-11.331,0-20.52,9.189-20.52,20.538c0,11.341,9.189,20.538,20.52,20.538
+                            c11.35,0,20.538-9.197,20.538-20.538C389.197,176.191,380.008,167.002,368.659,167.002z"
+              ></path>
+              <path
+                d="M368.659,266.247c-11.331,0-20.52,9.189-20.52,20.53c0,11.349,9.189,20.538,20.52,20.538
+                            c11.35,0,20.538-9.189,20.538-20.538C389.197,275.436,380.008,266.247,368.659,266.247z"
+              ></path>
+              <path
+                d="M418.282,216.633c-11.341,0-20.538,9.189-20.538,20.53c0,11.349,9.197,20.529,20.538,20.529
+                            c11.35,0,20.538-9.18,20.538-20.529C438.82,225.822,429.631,216.633,418.282,216.633z"
+              ></path>
+              <path
+                d="M319.054,216.633c-11.349,0-20.538,9.189-20.538,20.53c0,11.349,9.189,20.529,20.538,20.529
+                            c11.341,0,20.539-9.18,20.539-20.529C339.592,225.822,330.394,216.633,319.054,216.633z"
+              ></path>
+            </svg>
+          </button>
+          <button class="nb" onclick="toggleGameFullscreen()" id="gamePlayerFs">
+            <svg viewBox="0 0 24 24" id="gamePlayerFsIcon">
+              <path
+                d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="game-player-loading" id="gamePlayerLoading">loading…</div>
+      <iframe
+        id="gameFrame"
+        allow="autoplay; fullscreen; gamepad"
+      ></iframe>
+      <div id="cloudVideoWrap">
+        <video autoplay="" id="cloudVideo" muted="" playsinline=""></video>
+        <div id="cloudOverlay">
+          <div class="cloud-spinner" id="cloudSpinner"></div>
+          <div id="cloudPhase">idle</div>
+          <div id="cloudPhaseDetail"></div>
+        </div>
+        <div id="cloudRelockHint">click to resume mouse control</div>
+      </div>
+    </div>
+    <div class="cm-modal" id="controllerMapperModal">
+      <div class="cm-modal-center">
+        <div class="cm-modal-card">
+          <div class="cm-modal-header">
+            <h3 class="cm-modal-title">controller mapping</h3>
+            <button class="cm-modal-close" onclick="toggleControllerMapper()">
+              ×
+            </button>
+          </div>
+          <div class="cm-modal-body">
+            <div class="cm-section-label">sticks</div>
+            <div class="cm-grid">
+              <div class="cm-row cm-stick">
+                <span class="cm-name">left stick</span>
+                <button
+                  class="stick-toggle"
+                  onclick="toggleStickMode('left')"
+                  id="leftStickToggle"
+                >
+                  WASD
+                </button>
+              </div>
+              <div class="cm-row cm-stick">
+                <span class="cm-name">right stick</span>
+                <button
+                  class="stick-toggle"
+                  onclick="toggleStickMode('right')"
+                  id="rightStickToggle"
+                >
+                  MOUSE
+                </button>
+              </div>
+            </div>
+            <div class="cm-section-label">buttons</div>
+            <div class="cm-grid">
+              <div class="button-map" data-button="0">
+                <span class="cm-name">A</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="1">
+                <span class="cm-name">B</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="2">
+                <span class="cm-name">X</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="3">
+                <span class="cm-name">Y</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="4">
+                <span class="cm-name">LB</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="5">
+                <span class="cm-name">RB</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="6">
+                <span class="cm-name">LT</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="7">
+                <span class="cm-name">RT</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="10">
+                <span class="cm-name">L3</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="11">
+                <span class="cm-name">R3</span><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="8">
+                <span class="cm-name">back</span
+                ><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="9">
+                <span class="cm-name">start</span
+                ><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="12">
+                <span class="cm-name">d-pad up</span
+                ><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="13">
+                <span class="cm-name">d-pad down</span
+                ><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="14">
+                <span class="cm-name">d-pad left</span
+                ><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="button-map" data-button="15">
+                <span class="cm-name">d-pad right</span
+                ><span class="key-display">—</span
+                ><button
+                  class="cm-trash"
+                  title="delete keybind"
+                  aria-label="delete keybind"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="cm-footer">
+              <p class="cm-hint">
+                click a row to remap • press any key or mouse button • trash
+                clears it
+              </p>
+              <button class="cm-reset" onclick="resetControllerMap()">
+                reset to defaults
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="games-screen" id="gamesScreen">
+      <div class="screen-header">
+        <div
+          class="screen-header-left"
+          onclick="closeGames()"
+          style="cursor: default"
+        >
+          <span class="screen-header-title">lucianland</span>
+          <span class="screen-header-sub">games</span>
+        </div>
+        <div class="games-search-bar">
+          <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input
+            id="gamesSearch"
+            class="games-search-input"
+            placeholder="Search games…"
+            autocomplete="off"
+          />
+          <div class="cloud-toggle-wrap">
+            <span class="cloud-toggle-label">Cloud</span>
+            <button class="cloud-toggle" id="cloudToggle"></button>
+          </div>
+          <span class="addr-sep">|</span>
+          <span class="games-search-count" id="gamesCount"></span>
+        </div>
+        <button class="screen-minimize-btn" onclick="closeGames()">
+          <svg viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+      </div>
+      <div class="games-grid-wrap" id="gamesGridWrap">
+        <div class="games-grid-sizer" id="gamesGridSizer">
+          <div class="games-grid" id="gamesGrid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="ai-screen" id="aiScreen">
+      <div class="ai-container">
+        <aside class="ai-sidebar">
+          <div class="ai-sidebar-header">
+            <div
+              class="ai-logo-text"
+              onclick="closeAI()"
+              style="cursor: default"
+            >
+              <span class="screen-header-title">lucianland</span>
+              <span class="screen-header-sub">AI</span>
+            </div>
+          </div>
+          <div class="ai-sidebar-actions">
+            <button class="ai-sidebar-btn" id="aiNewChatBtn">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect height="18" rx="2" width="18" x="3" y="3" ry="2"></rect>
+                <line x1="12" x2="12" y1="8" y2="16"></line>
+                <line x1="8" x2="16" y1="12" y2="12"></line>
+              </svg>
+              New chat
+            </button>
+            <button class="ai-sidebar-btn" id="aiScreenshareBtn">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect height="13" rx="2" width="20" x="2" y="4" ry="2"></rect>
+                <line x1="8" x2="16" y1="21" y2="21"></line>
+                <line x1="12" x2="12" y1="17" y2="21"></line>
+              </svg>
+              Screenshare
+            </button>
+          </div>
+          <div class="ai-sidebar-section">
+            <div class="ai-section-label">Recent</div>
+            <div class="ai-recents-list" id="aiRecentsList">
+              <div class="ai-empty-state">No recent chats</div>
+            </div>
+          </div>
+          <div class="ai-status-bottom" id="aiStatus"></div>
+        </aside>
+        <main class="ai-main">
+          <button class="ai-close-btn-top" onclick="closeAI()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div class="ai-chat-container" id="aiChatContainer">
+            <div class="ai-welcome" id="aiWelcome">
+              <h1 class="ai-welcome-title">
+                <span class="ai-shine">What can I help with?</span>
+              </h1>
+            </div>
+            <div class="ai-messages" id="aiMessages"></div>
+          </div>
+          <div class="ai-input-container">
+            <div class="ai-input-stack">
+              <div class="ai-attach-preview" id="aiAttachPreview">
+                <div class="ai-attach-chip">
+                  <img alt="" id="aiAttachThumb" />
+                  <button
+                    class="ai-attach-remove"
+                    id="aiAttachRemove"
+                    type="button"
+                    title="Remove image"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M18 6 6 18M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+                <span class="ai-attach-name" id="aiAttachName"></span>
+              </div>
+              <div class="ai-input-wrapper" id="aiInputWrapper">
+                <input
+                  id="aiImageInput"
+                  class="is-hidden-permanent"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                />
+                <button
+                  class="ai-input-icon"
+                  id="aiImageBtn"
+                  type="button"
+                  title="Attach image"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M12 5v14M5 12h14"></path>
+                  </svg>
+                </button>
+                <textarea
+                  id="aiInput"
+                  placeholder="Ask anything"
+                  rows="1"
+                ></textarea>
+                <button
+                  class="ai-input-icon"
+                  id="aiWebSearchBtn"
+                  type="button"
+                  title="Search the web"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M2 12h20"></path>
+                    <path
+                      d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
+                    ></path>
+                  </svg>
+                </button>
+                <div class="ai-model-wrap" id="aiModelWrap">
+                  <button
+                    class="ai-model-trigger"
+                    id="aiModelTrigger"
+                    type="button"
+                  >
+                    <span class="ai-model-trigger-label" id="aiModelLabel"
+                      >loading…</span
+                    >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="m6 9 6 6 6-6"></path>
+                    </svg>
+                  </button>
+                  <div class="ai-model-popup" id="aiModelPopup"></div>
+                </div>
+                <button class="hidden ai-send-btn" id="aiSendBtn" type="button">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="m5 12 7-7 7 7M12 19V5"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <div class="effects-screen" id="effectsScreen">
+      <div class="screen-header">
+        <div
+          class="screen-header-left"
+          onclick="closeEffects()"
+          style="cursor: default"
+        >
+          <span class="screen-header-title">lucianland</span>
+          <span class="screen-header-sub">effects</span>
+        </div>
+        <div class="effects-search-bar">
+          <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input
+            id="effectsSearch"
+            class="effects-search-input"
+            placeholder="Search sound effects…"
+            autocomplete="off"
+          />
+        </div>
+        <button class="screen-minimize-btn" onclick="closeEffects()">
+          <svg viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+      </div>
+      <div class="effects-grid-wrap" id="effectsGridWrap">
+        <div class="effects-grid-sizer" id="effectsGridSizer">
+          <div class="effects-grid" id="effectsGrid"></div>
+        </div>
+      </div>
+      <div class="effects-footer">
+        <svg viewBox="0 0 24 24">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <input
+          id="volumeSlider"
+          class="volume-slider"
+          type="range"
+          max="1"
+          min="0"
+          step="0.01"
+          value="1"
+        />
+      </div>
+    </div>
+    <nav class="bottom-nav" id="bottomNav">
+      <div class="rail-brand">lucianland<span>.</span></div>
+      <div class="rail-caption">Your workspace</div>
+      <div class="nav-stats">
+        <span class="nav-stat">© lucianland</span>
+        <span class="nav-stat" id="pingDisplay">ping: --</span>
+        <span class="nav-stat" id="baseDisplay">base: --</span>
+      </div>
+      <div class="nav-buttons">
+        <button class="nav-item" onclick="openGames()" id="navGames">
+          <svg
+            viewBox="0 0 24 24"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="6" x2="10" y1="11" y2="11"></line>
+            <line x1="8" x2="8" y1="9" y2="13"></line>
+            <line x1="15" x2="15.01" y1="12" y2="12"></line>
+            <line x1="18" x2="18.01" y1="10" y2="10"></line>
+            <path
+              d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"
+            ></path>
+          </svg>
+          Library
+        </button>
+        <button class="nav-item" onclick="openEffects()" id="navEffects">
+          <svg viewBox="0 0 24 24">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          Effects
+        </button>
+        <button class="nav-item" onclick="openAI()" id="navAI">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+            ></path>
+          </svg>
+          AI
+        </button>
+        <button class="nav-item" onclick="toggleSettings()" id="navSettings">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+            ></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          Settings
+        </button>
+      </div>
+    </nav>
+    <script>
+      (() => {
+        document.title = "lucianland";
+        const e = document.createElement("script");
+        ((e.src = getAsset("main.js")),
+          (e.onload = function () {
+            e.remove();
+          }),
+          document.head.appendChild(e));
+      })();
+    </script>
+  </body>
+</html>
